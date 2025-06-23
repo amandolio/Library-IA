@@ -1718,7 +1718,7 @@ export const syncWithLibrarySystem = async (): Promise<LibrarySystemSync> => {
             resource.librarySystem.availableCopies + availableChange));
         
         resource.librarySystem.checkedOutCopies = 
-          resource.library System.totalCopies - resource.librarySystem.availableCopies - resource.librarySystem.reservedCopies;
+          resource.librarySystem.totalCopies - resource.librarySystem.availableCopies - resource.librarySystem.reservedCopies;
         
         // Actualizar estado de disponibilidad
         if (resource.librarySystem.availableCopies > 0) {
