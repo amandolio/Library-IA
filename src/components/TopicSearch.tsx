@@ -15,7 +15,8 @@ import {
   BarChart3,
   RefreshCw,
   Database,
-  Layers
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import { Resource, KeywordExtractionResult, BookCategory } from '../types';
 import { 
@@ -25,13 +26,17 @@ import {
   extractKeywords,
   analyzeResourceKeywords,
   getLibrarySyncStatus,
-  syncWithLibrarySystem
+  syncWithLibrarySystem,
+  searchResourcesByKeywords,
+  getCachedKeywordAnalysis,
+  cacheKeywordAnalysis
 } from '../data/mockData';
 import { ResourceCard } from './ResourceCard';
 
 export function TopicSearch() {
   const [topic, setTopic] = useState('');
   const [searchResults, setSearchResults] = useState<Resource[]>([]);
+  const [keywordRecommendations, setKeywordRecommendations] = useState<Resource[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -55,6 +60,7 @@ export function TopicSearch() {
     setIsSearching(true);
     setHasSearched(true);
     setKeywordAnalysis(null);
+    setKeywordRecommendations([]);
     
     // Simular delay de búsqueda AI
     setTimeout(async () => {
@@ -66,8 +72,27 @@ export function TopicSearch() {
       if (searchTopic.length > 5) {
         setIsAnalyzing(true);
         try {
-          const keywordResult = await extractKeywords(searchTopic, 'hybrid', 10);
+          // Verificar si ya tenemos análisis en caché
+          let keywordResult = getCachedKeywordAnalysis(searchTopic);
+          
+          if (!keywordResult) {
+            // Si no está en caché, hacer nuevo análisis
+            keywordResult = await extractKeywords(searchTopic, 'hybrid', 15);
+            // Guardar en caché
+            cacheKeywordAnalysis(searchTopic, keywordResult);
+          }
+          
           setKeywordAnalysis(keywordResult);
+          
+          // Buscar recursos basados en las keywords extraídas
+          if (keywordResult.keywords.length > 0) {
+            const keywordBasedResults = searchResourcesByKeywords(keywordResult.keywords);
+            // Filtrar resultados que no estén ya en los resultados principales
+            const uniqueKeywordResults = keywordBasedResults.filter(
+              kwRes => !results.some(res => res.id === kwRes.id)
+            );
+            setKeywordRecommendations(uniqueKeywordResults.slice(0, 6));
+          }
         } catch (error) {
           console.error('Error analyzing keywords:', error);
         }
@@ -175,33 +200,35 @@ export function TopicSearch() {
 
       {/* Search Input */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-        <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
-          <input
-            type="text"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch(topic)}
-            placeholder="Ej: Machine Learning, Quantum Computing, Cybersecurity..."
-            className="w-full pl-14 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-          />
-          <button
-            onClick={() => handleSearch(topic)}
-            disabled={!topic.trim() || isSearching}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-          >
-            {isSearching ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Analizando...</span>
-              </>
-            ) : (
-              <>
-                <Brain className="h-4 w-4" />
-                <span>Buscar con IA</span>
-              </>
-            )}
-          </button>
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch(topic)}
+              placeholder="Ej: Machine Learning, Quantum Computing, Cybersecurity..."
+              className="w-full pl-14 pr-32 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+            />
+            <button
+              onClick={() => handleSearch(topic)}
+              disabled={!topic.trim() || isSearching}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+            >
+              {isSearching ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Analizando...</span>
+                </>
+              ) : (
+                <>
+                  <Brain className="h-4 w-4" />
+                  <span>Buscar con IA</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Category Filter */}
@@ -365,6 +392,38 @@ export function TopicSearch() {
               <BarChart3 className="h-4 w-4 mr-1" />
               Calculando relevancia
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Keyword-based Recommendations */}
+      {keywordRecommendations.length > 0 && !isSearching && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center space-x-3 mb-6">
+            <Sparkles className="h-6 w-6 text-purple-600" />
+            <h3 className="text-xl font-bold text-gray-900">
+              Recomendaciones Basadas en Keywords PLN
+            </h3>
+          </div>
+          <p className="text-gray-600 mb-4">
+            Recursos adicionales encontrados mediante análisis semántico de las keywords extraídas
+          </p>
+          <div className="grid grid-cols-1 gap-4">
+            {keywordRecommendations.map((resource, index) => (
+              <div key={resource.id} className="relative">
+                <div className="absolute -left-4 top-4 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold z-10">
+                  {index + 1}
+                </div>
+                <div className="ml-6">
+                  <div 
+                    onClick={() => handleResourceClick(resource)}
+                    className="cursor-pointer transform hover:scale-[1.02] transition-transform"
+                  >
+                    <ResourceCard resource={resource} />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -309,6 +309,78 @@ export const mockResources: Resource[] = [
     },
     fullTextKeywords: ['reinforcement learning', 'markov decision processes', 'dynamic programming', 'monte carlo methods', 'temporal difference learning', 'policy gradient', 'actor critic', 'multi armed bandits', 'exploration exploitation', 'value functions']
   },
+  {
+    id: 'ai-006',
+    title: 'Computer Vision: Algorithms and Applications',
+    authors: ['Richard Szeliski'],
+    type: 'book',
+    category: 'Inteligencia Artificial y Machine Learning',
+    tags: ['Computer Vision', 'Image Processing', 'Feature Detection'],
+    abstract: 'Comprehensive textbook on computer vision covering fundamental algorithms and modern applications.',
+    publishedYear: 2022,
+    publisher: 'Springer',
+    citations: 12340,
+    impactFactor: 8.9,
+    availability: 'available',
+    location: 'Section A, Shelf 16',
+    isbn: '978-1848829343',
+    rating: 4.6,
+    reviewCount: 756,
+    language: 'English',
+    pageCount: 812,
+    thumbnail: 'https://images.pexels.com/photos/8386408/pexels-photo-8386408.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Image Processing', 'Object Recognition', 'Machine Learning'],
+    url: 'https://library.university.edu/catalog/computer-vision-algorithms',
+    digitalUrl: 'https://szeliski.org/Book/',
+    librarySystem: {
+      catalogId: 'CAT-AI-006',
+      barcode: '31234567890140',
+      acquisitionDate: '2022-08-15',
+      lastUpdated: '2024-01-20',
+      totalCopies: 4,
+      availableCopies: 3,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-02-28'
+    },
+    fullTextKeywords: ['computer vision', 'image processing', 'feature detection', 'object recognition', 'stereo vision', 'motion estimation', 'image segmentation', 'face recognition', 'optical flow', 'structure from motion']
+  },
+  {
+    id: 'ai-007',
+    title: 'AI Ethics: Global Perspectives',
+    authors: ['Luciano Floridi', 'Josh Cowls', 'Monica Beltrametti'],
+    type: 'book',
+    category: 'Inteligencia Artificial y Machine Learning',
+    tags: ['AI Ethics', 'Responsible AI', 'Algorithmic Bias'],
+    abstract: 'Comprehensive examination of ethical considerations in artificial intelligence development and deployment.',
+    publishedYear: 2023,
+    publisher: 'Oxford University Press',
+    citations: 2340,
+    impactFactor: 6.7,
+    availability: 'digital-only',
+    isbn: '978-0198857839',
+    rating: 4.4,
+    reviewCount: 234,
+    language: 'English',
+    pageCount: 456,
+    thumbnail: 'https://images.pexels.com/photos/8386401/pexels-photo-8386401.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Responsible AI', 'Algorithmic Fairness', 'AI Governance'],
+    digitalUrl: 'https://digital.library.edu/books/ai-ethics-global-perspectives',
+    librarySystem: {
+      catalogId: 'CAT-AI-007',
+      barcode: '31234567890141',
+      acquisitionDate: '2023-05-10',
+      lastUpdated: '2024-01-18',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 30,
+      digitalActiveUsers: 7
+    },
+    fullTextKeywords: ['ai ethics', 'responsible ai', 'algorithmic bias', 'fairness', 'transparency', 'accountability', 'privacy', 'human rights', 'ai governance', 'ethical frameworks', 'social impact', 'digital rights']
+  },
 
   // PROGRAMACIÓN Y DESARROLLO
   {
@@ -417,6 +489,112 @@ export const mockResources: Resource[] = [
     },
     fullTextKeywords: ['python programming', 'programming basics', 'data types', 'control structures', 'functions', 'classes', 'file handling', 'web scraping', 'data visualization', 'game development', 'web applications', 'testing']
   },
+  {
+    id: 'prog-004',
+    title: 'Design Patterns: Elements of Reusable Object-Oriented Software',
+    authors: ['Erich Gamma', 'Richard Helm', 'Ralph Johnson', 'John Vlissides'],
+    type: 'book',
+    category: 'Programación y Desarrollo',
+    tags: ['Design Patterns', 'Object-Oriented Programming', 'Software Architecture'],
+    abstract: 'Classic book on design patterns that provides solutions to common software design problems.',
+    publishedYear: 1994,
+    publisher: 'Addison-Wesley',
+    citations: 45670,
+    impactFactor: 15.2,
+    availability: 'available',
+    location: 'Section B, Shelf 3',
+    isbn: '978-0201633610',
+    rating: 4.5,
+    reviewCount: 2876,
+    language: 'English',
+    pageCount: 395,
+    thumbnail: 'https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Software Architecture', 'Object-Oriented Design', 'Software Engineering'],
+    url: 'https://library.university.edu/catalog/design-patterns',
+    librarySystem: {
+      catalogId: 'CAT-PROG-004',
+      barcode: '31234567890142',
+      acquisitionDate: '2018-09-10',
+      lastUpdated: '2024-01-16',
+      totalCopies: 5,
+      availableCopies: 3,
+      reservedCopies: 1,
+      checkedOutCopies: 2,
+      dueDate: '2024-02-22'
+    },
+    fullTextKeywords: ['design patterns', 'object oriented programming', 'software architecture', 'creational patterns', 'structural patterns', 'behavioral patterns', 'singleton', 'factory', 'observer', 'strategy', 'decorator', 'adapter']
+  },
+  {
+    id: 'prog-005',
+    title: 'React: Up & Running',
+    authors: ['Stoyan Stefanov'],
+    type: 'book',
+    category: 'Programación y Desarrollo',
+    tags: ['React', 'Frontend Development', 'JavaScript'],
+    abstract: 'Practical guide to building user interfaces with React, covering components, state management, and modern patterns.',
+    publishedYear: 2021,
+    publisher: "O'Reilly Media",
+    citations: 1890,
+    impactFactor: 4.3,
+    availability: 'digital-only',
+    isbn: '978-1491931820',
+    rating: 4.2,
+    reviewCount: 567,
+    language: 'English',
+    pageCount: 312,
+    thumbnail: 'https://images.pexels.com/photos/1181280/pexels-photo-1181280.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Frontend Development', 'JavaScript', 'Web Development'],
+    digitalUrl: 'https://digital.library.edu/books/react-up-running',
+    librarySystem: {
+      catalogId: 'CAT-PROG-005',
+      barcode: '31234567890143',
+      acquisitionDate: '2021-06-15',
+      lastUpdated: '2024-01-17',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 20,
+      digitalActiveUsers: 6
+    },
+    fullTextKeywords: ['react', 'frontend development', 'javascript', 'components', 'jsx', 'state management', 'hooks', 'virtual dom', 'props', 'lifecycle methods', 'routing', 'testing']
+  },
+  {
+    id: 'prog-006',
+    title: 'Docker Deep Dive',
+    authors: ['Nigel Poulton'],
+    type: 'book',
+    category: 'Programación y Desarrollo',
+    tags: ['Docker', 'Containerization', 'DevOps'],
+    abstract: 'Comprehensive guide to Docker containerization technology, from basics to advanced orchestration.',
+    publishedYear: 2020,
+    publisher: 'Leanpub',
+    citations: 2340,
+    impactFactor: 5.6,
+    availability: 'available',
+    location: 'Section B, Shelf 12',
+    isbn: '978-1521822807',
+    rating: 4.6,
+    reviewCount: 892,
+    language: 'English',
+    pageCount: 389,
+    thumbnail: 'https://images.pexels.com/photos/1181316/pexels-photo-1181316.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['DevOps', 'Containerization', 'Microservices'],
+    url: 'https://library.university.edu/catalog/docker-deep-dive',
+    librarySystem: {
+      catalogId: 'CAT-PROG-006',
+      barcode: '31234567890144',
+      acquisitionDate: '2020-11-20',
+      lastUpdated: '2024-01-19',
+      totalCopies: 3,
+      availableCopies: 2,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-02-26'
+    },
+    fullTextKeywords: ['docker', 'containerization', 'devops', 'microservices', 'orchestration', 'kubernetes', 'container registry', 'dockerfile', 'docker compose', 'swarm mode', 'networking', 'volumes']
+  },
 
   // CIENCIA DE DATOS Y ANALYTICS
   {
@@ -491,6 +669,113 @@ export const mockResources: Resource[] = [
     },
     fullTextKeywords: ['statistical learning', 'machine learning', 'supervised learning', 'unsupervised learning', 'linear regression', 'classification', 'resampling methods', 'regularization', 'tree based methods', 'support vector machines', 'neural networks', 'ensemble methods']
   },
+  {
+    id: 'data-003',
+    title: 'R for Data Science',
+    authors: ['Hadley Wickham', 'Garrett Grolemund'],
+    type: 'book',
+    category: 'Ciencia de Datos y Analytics',
+    tags: ['R Programming', 'Data Science', 'Statistics'],
+    abstract: 'Learn how to use R to turn raw data into insight, knowledge, and understanding.',
+    publishedYear: 2017,
+    publisher: "O'Reilly Media",
+    citations: 6780,
+    impactFactor: 7.2,
+    availability: 'available',
+    location: 'Section C, Shelf 5',
+    isbn: '978-1491910399',
+    rating: 4.6,
+    reviewCount: 1234,
+    language: 'English',
+    pageCount: 520,
+    thumbnail: 'https://images.pexels.com/photos/590024/pexels-photo-590024.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Statistical Analysis', 'Data Visualization', 'R Programming'],
+    url: 'https://library.university.edu/catalog/r-data-science',
+    digitalUrl: 'https://r4ds.had.co.nz/',
+    librarySystem: {
+      catalogId: 'CAT-DATA-003',
+      barcode: '31234567890145',
+      acquisitionDate: '2020-03-15',
+      lastUpdated: '2024-01-21',
+      totalCopies: 4,
+      availableCopies: 2,
+      reservedCopies: 1,
+      checkedOutCopies: 2,
+      dueDate: '2024-03-01'
+    },
+    fullTextKeywords: ['r programming', 'data science', 'statistics', 'data visualization', 'ggplot2', 'dplyr', 'tidyverse', 'data wrangling', 'exploratory data analysis', 'statistical modeling', 'data import', 'data transformation']
+  },
+  {
+    id: 'data-004',
+    title: 'Hands-On Machine Learning with Scikit-Learn and TensorFlow',
+    authors: ['Aurélien Géron'],
+    type: 'book',
+    category: 'Ciencia de Datos y Analytics',
+    tags: ['Machine Learning', 'Scikit-Learn', 'TensorFlow'],
+    abstract: 'Practical guide to machine learning using popular Python libraries with hands-on examples.',
+    publishedYear: 2019,
+    publisher: "O'Reilly Media",
+    citations: 4560,
+    impactFactor: 6.8,
+    availability: 'digital-only',
+    isbn: '978-1492032649',
+    rating: 4.7,
+    reviewCount: 1876,
+    language: 'English',
+    pageCount: 851,
+    thumbnail: 'https://images.pexels.com/photos/590026/pexels-photo-590026.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Machine Learning', 'Deep Learning', 'Python'],
+    digitalUrl: 'https://digital.library.edu/books/hands-on-ml-scikit-tensorflow',
+    librarySystem: {
+      catalogId: 'CAT-DATA-004',
+      barcode: '31234567890146',
+      acquisitionDate: '2021-07-20',
+      lastUpdated: '2024-01-22',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 35,
+      digitalActiveUsers: 14
+    },
+    fullTextKeywords: ['machine learning', 'scikit learn', 'tensorflow', 'supervised learning', 'unsupervised learning', 'neural networks', 'deep learning', 'feature engineering', 'model evaluation', 'ensemble methods', 'dimensionality reduction', 'clustering']
+  },
+  {
+    id: 'data-005',
+    title: 'Data Visualization: A Practical Introduction',
+    authors: ['Kieran Healy'],
+    type: 'book',
+    category: 'Ciencia de Datos y Analytics',
+    tags: ['Data Visualization', 'ggplot2', 'R Programming'],
+    abstract: 'Comprehensive guide to creating effective data visualizations using R and ggplot2.',
+    publishedYear: 2018,
+    publisher: 'Princeton University Press',
+    citations: 2340,
+    impactFactor: 5.4,
+    availability: 'available',
+    location: 'Section C, Shelf 8',
+    isbn: '978-0691181622',
+    rating: 4.4,
+    reviewCount: 567,
+    language: 'English',
+    pageCount: 296,
+    thumbnail: 'https://images.pexels.com/photos/590028/pexels-photo-590028.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Data Visualization', 'Statistical Graphics', 'R Programming'],
+    url: 'https://library.university.edu/catalog/data-visualization-practical',
+    librarySystem: {
+      catalogId: 'CAT-DATA-005',
+      barcode: '31234567890147',
+      acquisitionDate: '2020-08-10',
+      lastUpdated: '2024-01-23',
+      totalCopies: 3,
+      availableCopies: 2,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-03-05'
+    },
+    fullTextKeywords: ['data visualization', 'ggplot2', 'r programming', 'statistical graphics', 'charts', 'graphs', 'visual design', 'exploratory data analysis', 'presentation graphics', 'color theory', 'typography', 'dashboard design']
+  },
 
   // CIBERSEGURIDAD Y CRIPTOGRAFÍA
   {
@@ -563,6 +848,77 @@ export const mockResources: Resource[] = [
       waitingList: ['user-234']
     },
     fullTextKeywords: ['web application security', 'penetration testing', 'vulnerability assessment', 'sql injection', 'cross site scripting', 'authentication bypass', 'session management', 'access controls', 'input validation', 'security testing', 'ethical hacking', 'web vulnerabilities']
+  },
+  {
+    id: 'cyber-003',
+    title: 'Network Security Essentials',
+    authors: ['William Stallings'],
+    type: 'book',
+    category: 'Ciberseguridad y Criptografía',
+    tags: ['Network Security', 'Firewalls', 'VPN'],
+    abstract: 'Comprehensive introduction to network security concepts, protocols, and technologies.',
+    publishedYear: 2020,
+    publisher: 'Pearson',
+    citations: 5670,
+    impactFactor: 7.1,
+    availability: 'available',
+    location: 'Section D, Shelf 5',
+    isbn: '978-0134527338',
+    rating: 4.3,
+    reviewCount: 678,
+    language: 'English',
+    pageCount: 432,
+    thumbnail: 'https://images.pexels.com/photos/60506/security-protection-anti-virus-software-60506.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Network Security', 'Cryptography', 'Information Security'],
+    url: 'https://library.university.edu/catalog/network-security-essentials',
+    librarySystem: {
+      catalogId: 'CAT-CYBER-003',
+      barcode: '31234567890148',
+      acquisitionDate: '2021-02-10',
+      lastUpdated: '2024-01-24',
+      totalCopies: 4,
+      availableCopies: 3,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-03-08'
+    },
+    fullTextKeywords: ['network security', 'firewalls', 'vpn', 'intrusion detection', 'access control', 'authentication', 'encryption', 'network protocols', 'security policies', 'risk management', 'incident response', 'security architecture']
+  },
+  {
+    id: 'cyber-004',
+    title: 'Digital Forensics and Incident Response',
+    authors: ['Gerard Johansen'],
+    type: 'book',
+    category: 'Ciberseguridad y Criptografía',
+    tags: ['Digital Forensics', 'Incident Response', 'Cybercrime Investigation'],
+    abstract: 'Practical guide to digital forensics and incident response in cybersecurity investigations.',
+    publishedYear: 2021,
+    publisher: 'Packt Publishing',
+    citations: 1890,
+    impactFactor: 4.2,
+    availability: 'digital-only',
+    isbn: '978-1800569393',
+    rating: 4.1,
+    reviewCount: 234,
+    language: 'English',
+    pageCount: 368,
+    thumbnail: 'https://images.pexels.com/photos/60508/security-protection-anti-virus-software-60508.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Digital Forensics', 'Cybercrime', 'Security Investigation'],
+    digitalUrl: 'https://digital.library.edu/books/digital-forensics-incident-response',
+    librarySystem: {
+      catalogId: 'CAT-CYBER-004',
+      barcode: '31234567890149',
+      acquisitionDate: '2022-01-15',
+      lastUpdated: '2024-01-25',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 15,
+      digitalActiveUsers: 4
+    },
+    fullTextKeywords: ['digital forensics', 'incident response', 'cybercrime investigation', 'evidence collection', 'malware analysis', 'network forensics', 'mobile forensics', 'memory forensics', 'forensic tools', 'chain of custody', 'legal procedures', 'threat hunting']
   },
 
   // SISTEMAS Y REDES
@@ -637,6 +993,77 @@ export const mockResources: Resource[] = [
     },
     fullTextKeywords: ['operating systems', 'process management', 'memory management', 'file systems', 'synchronization', 'deadlocks', 'cpu scheduling', 'virtual memory', 'storage management', 'protection', 'security', 'distributed systems']
   },
+  {
+    id: 'sys-003',
+    title: 'Distributed Systems: Concepts and Design',
+    authors: ['George Coulouris', 'Jean Dollimore', 'Tim Kindberg'],
+    type: 'book',
+    category: 'Sistemas y Redes',
+    tags: ['Distributed Systems', 'Concurrency', 'Fault Tolerance'],
+    abstract: 'Comprehensive textbook on distributed systems covering fundamental concepts and modern architectures.',
+    publishedYear: 2019,
+    publisher: 'Addison-Wesley',
+    citations: 12340,
+    impactFactor: 8.7,
+    availability: 'available',
+    location: 'Section E, Shelf 5',
+    isbn: '978-0132143011',
+    rating: 4.3,
+    reviewCount: 987,
+    language: 'English',
+    pageCount: 927,
+    thumbnail: 'https://images.pexels.com/photos/1148822/pexels-photo-1148822.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Distributed Computing', 'Microservices', 'Cloud Computing'],
+    url: 'https://library.university.edu/catalog/distributed-systems-concepts',
+    librarySystem: {
+      catalogId: 'CAT-SYS-003',
+      barcode: '31234567890150',
+      acquisitionDate: '2020-09-20',
+      lastUpdated: '2024-01-26',
+      totalCopies: 3,
+      availableCopies: 2,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-03-10'
+    },
+    fullTextKeywords: ['distributed systems', 'concurrency', 'fault tolerance', 'consistency', 'replication', 'consensus', 'distributed algorithms', 'microservices', 'service oriented architecture', 'cloud computing', 'scalability', 'reliability']
+  },
+  {
+    id: 'sys-004',
+    title: 'Cloud Computing: Concepts, Technology & Architecture',
+    authors: ['Thomas Erl', 'Zaigham Mahmood', 'Ricardo Puttini'],
+    type: 'book',
+    category: 'Sistemas y Redes',
+    tags: ['Cloud Computing', 'Virtualization', 'Scalability'],
+    abstract: 'Comprehensive guide to cloud computing concepts, technologies, and architectural patterns.',
+    publishedYear: 2021,
+    publisher: 'Prentice Hall',
+    citations: 3450,
+    impactFactor: 6.2,
+    availability: 'digital-only',
+    isbn: '978-0133387520',
+    rating: 4.2,
+    reviewCount: 456,
+    language: 'English',
+    pageCount: 528,
+    thumbnail: 'https://images.pexels.com/photos/1148824/pexels-photo-1148824.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Cloud Architecture', 'Virtualization', 'Distributed Systems'],
+    digitalUrl: 'https://digital.library.edu/books/cloud-computing-concepts',
+    librarySystem: {
+      catalogId: 'CAT-SYS-004',
+      barcode: '31234567890151',
+      acquisitionDate: '2021-11-15',
+      lastUpdated: '2024-01-27',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 25,
+      digitalActiveUsers: 9
+    },
+    fullTextKeywords: ['cloud computing', 'virtualization', 'scalability', 'elasticity', 'saas', 'paas', 'iaas', 'cloud architecture', 'multi tenancy', 'cloud security', 'hybrid cloud', 'cloud migration']
+  },
 
   // BASES DE DATOS
   {
@@ -709,6 +1136,545 @@ export const mockResources: Resource[] = [
       digitalActiveUsers: 5
     },
     fullTextKeywords: ['mongodb', 'nosql', 'document database', 'json', 'bson', 'querying', 'indexing', 'aggregation', 'replication', 'sharding', 'performance', 'administration']
+  },
+  {
+    id: 'db-003',
+    title: 'PostgreSQL: Up and Running',
+    authors: ['Regina Obe', 'Leo Hsu'],
+    type: 'book',
+    category: 'Bases de Datos',
+    tags: ['PostgreSQL', 'SQL', 'Database Administration'],
+    abstract: 'Practical guide to PostgreSQL database administration and advanced features.',
+    publishedYear: 2020,
+    publisher: "O'Reilly Media",
+    citations: 2340,
+    impactFactor: 4.8,
+    availability: 'available',
+    location: 'Section F, Shelf 3',
+    isbn: '978-1491963418',
+    rating: 4.4,
+    reviewCount: 567,
+    language: 'English',
+    pageCount: 312,
+    thumbnail: 'https://images.pexels.com/photos/1181679/pexels-photo-1181679.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['SQL', 'Database Administration', 'Relational Databases'],
+    url: 'https://library.university.edu/catalog/postgresql-up-running',
+    librarySystem: {
+      catalogId: 'CAT-DB-003',
+      barcode: '31234567890152',
+      acquisitionDate: '2021-03-25',
+      lastUpdated: '2024-01-28',
+      totalCopies: 3,
+      availableCopies: 2,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-03-12'
+    },
+    fullTextKeywords: ['postgresql', 'sql', 'database administration', 'relational database', 'acid properties', 'indexing', 'query optimization', 'stored procedures', 'triggers', 'replication', 'backup', 'performance tuning']
+  },
+  {
+    id: 'db-004',
+    title: 'Data Warehousing Fundamentals',
+    authors: ['Paulraj Ponniah'],
+    type: 'book',
+    category: 'Bases de Datos',
+    tags: ['Data Warehousing', 'ETL', 'Business Intelligence'],
+    abstract: 'Comprehensive guide to data warehousing concepts, design, and implementation.',
+    publishedYear: 2018,
+    publisher: 'Wiley',
+    citations: 3450,
+    impactFactor: 5.6,
+    availability: 'available',
+    location: 'Section F, Shelf 6',
+    isbn: '978-0471412540',
+    rating: 4.1,
+    reviewCount: 345,
+    language: 'English',
+    pageCount: 542,
+    thumbnail: 'https://images.pexels.com/photos/1181681/pexels-photo-1181681.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Business Intelligence', 'Data Mining', 'Analytics'],
+    url: 'https://library.university.edu/catalog/data-warehousing-fundamentals',
+    librarySystem: {
+      catalogId: 'CAT-DB-004',
+      barcode: '31234567890153',
+      acquisitionDate: '2020-07-10',
+      lastUpdated: '2024-01-29',
+      totalCopies: 2,
+      availableCopies: 1,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-03-15'
+    },
+    fullTextKeywords: ['data warehousing', 'etl', 'business intelligence', 'olap', 'dimensional modeling', 'star schema', 'snowflake schema', 'data marts', 'data integration', 'metadata management', 'data quality', 'reporting']
+  },
+
+  // ALGORITMOS Y ESTRUCTURAS DE DATOS
+  {
+    id: 'algo-001',
+    title: 'Introduction to Algorithms',
+    authors: ['Thomas H. Cormen', 'Charles E. Leiserson', 'Ronald L. Rivest', 'Clifford Stein'],
+    type: 'book',
+    category: 'Algoritmos y Estructuras de Datos',
+    tags: ['Algorithms', 'Data Structures', 'Complexity Analysis'],
+    abstract: 'Comprehensive textbook covering fundamental algorithms and data structures with mathematical analysis.',
+    publishedYear: 2009,
+    publisher: 'MIT Press',
+    citations: 67890,
+    impactFactor: 18.5,
+    availability: 'available',
+    location: 'Section G, Shelf 1',
+    isbn: '978-0262033848',
+    rating: 4.7,
+    reviewCount: 3456,
+    language: 'English',
+    pageCount: 1312,
+    thumbnail: 'https://images.pexels.com/photos/1181683/pexels-photo-1181683.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Computer Science Theory', 'Mathematical Analysis', 'Programming'],
+    url: 'https://library.university.edu/catalog/introduction-algorithms',
+    librarySystem: {
+      catalogId: 'CAT-ALGO-001',
+      barcode: '31234567890154',
+      acquisitionDate: '2018-05-15',
+      lastUpdated: '2024-01-30',
+      totalCopies: 8,
+      availableCopies: 5,
+      reservedCopies: 2,
+      checkedOutCopies: 3,
+      dueDate: '2024-03-18'
+    },
+    fullTextKeywords: ['algorithms', 'data structures', 'complexity analysis', 'sorting', 'searching', 'graph algorithms', 'dynamic programming', 'greedy algorithms', 'divide and conquer', 'asymptotic notation', 'trees', 'heaps']
+  },
+  {
+    id: 'algo-002',
+    title: 'Algorithm Design Manual',
+    authors: ['Steven S. Skiena'],
+    type: 'book',
+    category: 'Algoritmos y Estructuras de Datos',
+    tags: ['Algorithm Design', 'Problem Solving', 'Programming Contests'],
+    abstract: 'Practical guide to algorithm design with real-world examples and problem-solving techniques.',
+    publishedYear: 2020,
+    publisher: 'Springer',
+    citations: 8920,
+    impactFactor: 7.3,
+    availability: 'digital-only',
+    isbn: '978-1848000698',
+    rating: 4.5,
+    reviewCount: 1234,
+    language: 'English',
+    pageCount: 748,
+    thumbnail: 'https://images.pexels.com/photos/1181685/pexels-photo-1181685.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Problem Solving', 'Competitive Programming', 'Algorithm Analysis'],
+    digitalUrl: 'https://digital.library.edu/books/algorithm-design-manual',
+    librarySystem: {
+      catalogId: 'CAT-ALGO-002',
+      barcode: '31234567890155',
+      acquisitionDate: '2021-08-20',
+      lastUpdated: '2024-01-31',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 40,
+      digitalActiveUsers: 16
+    },
+    fullTextKeywords: ['algorithm design', 'problem solving', 'programming contests', 'optimization', 'graph theory', 'combinatorial algorithms', 'computational geometry', 'string algorithms', 'numerical algorithms', 'heuristics', 'approximation algorithms', 'backtracking']
+  },
+  {
+    id: 'algo-003',
+    title: 'Competitive Programming Handbook',
+    authors: ['Antti Laaksonen'],
+    type: 'book',
+    category: 'Algoritmos y Estructuras de Datos',
+    tags: ['Competitive Programming', 'Problem Solving', 'Algorithms'],
+    abstract: 'Comprehensive guide to competitive programming with algorithms and problem-solving techniques.',
+    publishedYear: 2021,
+    publisher: 'Self-Published',
+    citations: 1890,
+    impactFactor: 4.2,
+    availability: 'available',
+    location: 'Section G, Shelf 5',
+    isbn: '978-9526805597',
+    rating: 4.6,
+    reviewCount: 567,
+    language: 'English',
+    pageCount: 292,
+    thumbnail: 'https://images.pexels.com/photos/1181687/pexels-photo-1181687.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Programming Contests', 'Algorithm Implementation', 'Problem Solving'],
+    url: 'https://library.university.edu/catalog/competitive-programming-handbook',
+    digitalUrl: 'https://cses.fi/book/book.pdf',
+    librarySystem: {
+      catalogId: 'CAT-ALGO-003',
+      barcode: '31234567890156',
+      acquisitionDate: '2022-02-10',
+      lastUpdated: '2024-02-01',
+      totalCopies: 3,
+      availableCopies: 2,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-03-20'
+    },
+    fullTextKeywords: ['competitive programming', 'problem solving', 'algorithms', 'data structures', 'graph algorithms', 'dynamic programming', 'number theory', 'combinatorics', 'geometry', 'string processing', 'range queries', 'tree algorithms']
+  },
+
+  // MATEMÁTICAS PARA COMPUTACIÓN
+  {
+    id: 'math-001',
+    title: 'Discrete Mathematics and Its Applications',
+    authors: ['Kenneth H. Rosen'],
+    type: 'book',
+    category: 'Matemáticas para Computación',
+    tags: ['Discrete Mathematics', 'Logic', 'Graph Theory'],
+    abstract: 'Comprehensive textbook on discrete mathematics with applications to computer science.',
+    publishedYear: 2019,
+    publisher: 'McGraw-Hill',
+    citations: 23450,
+    impactFactor: 9.8,
+    availability: 'available',
+    location: 'Section H, Shelf 1',
+    isbn: '978-0073383095',
+    rating: 4.4,
+    reviewCount: 2134,
+    language: 'English',
+    pageCount: 1072,
+    thumbnail: 'https://images.pexels.com/photos/1181689/pexels-photo-1181689.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Mathematical Logic', 'Combinatorics', 'Number Theory'],
+    url: 'https://library.university.edu/catalog/discrete-mathematics-applications',
+    librarySystem: {
+      catalogId: 'CAT-MATH-001',
+      barcode: '31234567890157',
+      acquisitionDate: '2020-01-15',
+      lastUpdated: '2024-02-02',
+      totalCopies: 6,
+      availableCopies: 4,
+      reservedCopies: 1,
+      checkedOutCopies: 2,
+      dueDate: '2024-03-22'
+    },
+    fullTextKeywords: ['discrete mathematics', 'logic', 'graph theory', 'combinatorics', 'number theory', 'set theory', 'relations', 'functions', 'boolean algebra', 'proof techniques', 'recursion', 'counting principles']
+  },
+  {
+    id: 'math-002',
+    title: 'Linear Algebra and Its Applications',
+    authors: ['David C. Lay', 'Steven R. Lay', 'Judi J. McDonald'],
+    type: 'book',
+    category: 'Matemáticas para Computación',
+    tags: ['Linear Algebra', 'Matrices', 'Vector Spaces'],
+    abstract: 'Modern introduction to linear algebra with applications to computer science and engineering.',
+    publishedYear: 2020,
+    publisher: 'Pearson',
+    citations: 18920,
+    impactFactor: 8.7,
+    availability: 'digital-only',
+    isbn: '978-0321982384',
+    rating: 4.3,
+    reviewCount: 1567,
+    language: 'English',
+    pageCount: 576,
+    thumbnail: 'https://images.pexels.com/photos/1181691/pexels-photo-1181691.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Mathematics', 'Computer Graphics', 'Machine Learning'],
+    digitalUrl: 'https://digital.library.edu/books/linear-algebra-applications',
+    librarySystem: {
+      catalogId: 'CAT-MATH-002',
+      barcode: '31234567890158',
+      acquisitionDate: '2021-09-10',
+      lastUpdated: '2024-02-03',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 50,
+      digitalActiveUsers: 18
+    },
+    fullTextKeywords: ['linear algebra', 'matrices', 'vector spaces', 'eigenvalues', 'eigenvectors', 'linear transformations', 'determinants', 'orthogonality', 'least squares', 'singular value decomposition', 'matrix factorization', 'numerical methods']
+  },
+  {
+    id: 'math-003',
+    title: 'Probability and Statistics for Computer Science',
+    authors: ['David Forsyth'],
+    type: 'book',
+    category: 'Matemáticas para Computación',
+    tags: ['Probability', 'Statistics', 'Data Analysis'],
+    abstract: 'Introduction to probability and statistics with applications to computer science and data analysis.',
+    publishedYear: 2018,
+    publisher: 'Springer',
+    citations: 5670,
+    impactFactor: 6.4,
+    availability: 'available',
+    location: 'Section H, Shelf 5',
+    isbn: '978-3319644097',
+    rating: 4.2,
+    reviewCount: 789,
+    language: 'English',
+    pageCount: 448,
+    thumbnail: 'https://images.pexels.com/photos/1181693/pexels-photo-1181693.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Data Science', 'Statistical Analysis', 'Machine Learning'],
+    url: 'https://library.university.edu/catalog/probability-statistics-cs',
+    librarySystem: {
+      catalogId: 'CAT-MATH-003',
+      barcode: '31234567890159',
+      acquisitionDate: '2020-11-20',
+      lastUpdated: '2024-02-04',
+      totalCopies: 4,
+      availableCopies: 3,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-03-25'
+    },
+    fullTextKeywords: ['probability', 'statistics', 'data analysis', 'random variables', 'distributions', 'hypothesis testing', 'confidence intervals', 'regression analysis', 'bayesian statistics', 'monte carlo methods', 'statistical inference', 'experimental design']
+  },
+
+  // INGENIERÍA DE SOFTWARE
+  {
+    id: 'se-001',
+    title: 'Software Engineering: A Practitioner\'s Approach',
+    authors: ['Roger S. Pressman', 'Bruce R. Maxim'],
+    type: 'book',
+    category: 'Ingeniería de Software',
+    tags: ['Software Engineering', 'SDLC', 'Project Management'],
+    abstract: 'Comprehensive guide to software engineering practices, methodologies, and project management.',
+    publishedYear: 2020,
+    publisher: 'McGraw-Hill',
+    citations: 12340,
+    impactFactor: 7.8,
+    availability: 'available',
+    location: 'Section I, Shelf 1',
+    isbn: '978-0078022128',
+    rating: 4.3,
+    reviewCount: 1456,
+    language: 'English',
+    pageCount: 928,
+    thumbnail: 'https://images.pexels.com/photos/1181695/pexels-photo-1181695.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Project Management', 'Software Development', 'Quality Assurance'],
+    url: 'https://library.university.edu/catalog/software-engineering-practitioners',
+    librarySystem: {
+      catalogId: 'CAT-SE-001',
+      barcode: '31234567890160',
+      acquisitionDate: '2021-04-15',
+      lastUpdated: '2024-02-05',
+      totalCopies: 5,
+      availableCopies: 3,
+      reservedCopies: 1,
+      checkedOutCopies: 2,
+      dueDate: '2024-03-28'
+    },
+    fullTextKeywords: ['software engineering', 'sdlc', 'project management', 'requirements engineering', 'software design', 'testing', 'maintenance', 'quality assurance', 'agile methodologies', 'waterfall model', 'risk management', 'software metrics']
+  },
+  {
+    id: 'se-002',
+    title: 'Agile Software Development: Principles, Patterns, and Practices',
+    authors: ['Robert C. Martin'],
+    type: 'book',
+    category: 'Ingeniería de Software',
+    tags: ['Agile Development', 'Scrum', 'XP'],
+    abstract: 'Comprehensive guide to agile software development methodologies and best practices.',
+    publishedYear: 2017,
+    publisher: 'Prentice Hall',
+    citations: 8920,
+    impactFactor: 6.7,
+    availability: 'digital-only',
+    isbn: '978-0135974445',
+    rating: 4.5,
+    reviewCount: 987,
+    language: 'English',
+    pageCount: 552,
+    thumbnail: 'https://images.pexels.com/photos/1181697/pexels-photo-1181697.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Agile Methodologies', 'Team Management', 'Software Development'],
+    digitalUrl: 'https://digital.library.edu/books/agile-software-development',
+    librarySystem: {
+      catalogId: 'CAT-SE-002',
+      barcode: '31234567890161',
+      acquisitionDate: '2021-12-10',
+      lastUpdated: '2024-02-06',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 30,
+      digitalActiveUsers: 11
+    },
+    fullTextKeywords: ['agile development', 'scrum', 'extreme programming', 'iterative development', 'user stories', 'sprint planning', 'retrospectives', 'continuous integration', 'test driven development', 'pair programming', 'refactoring', 'customer collaboration']
+  },
+  {
+    id: 'se-003',
+    title: 'Software Testing: A Comprehensive Guide',
+    authors: ['Glenford J. Myers', 'Corey Sandler', 'Tom Badgett'],
+    type: 'book',
+    category: 'Ingeniería de Software',
+    tags: ['Software Testing', 'Quality Assurance', 'Test Automation'],
+    abstract: 'Complete guide to software testing methodologies, techniques, and automation strategies.',
+    publishedYear: 2019,
+    publisher: 'Wiley',
+    citations: 5670,
+    impactFactor: 5.9,
+    availability: 'available',
+    location: 'Section I, Shelf 5',
+    isbn: '978-1118031964',
+    rating: 4.2,
+    reviewCount: 678,
+    language: 'English',
+    pageCount: 384,
+    thumbnail: 'https://images.pexels.com/photos/1181699/pexels-photo-1181699.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Quality Assurance', 'Test Automation', 'Software Quality'],
+    url: 'https://library.university.edu/catalog/software-testing-comprehensive',
+    librarySystem: {
+      catalogId: 'CAT-SE-003',
+      barcode: '31234567890162',
+      acquisitionDate: '2020-06-25',
+      lastUpdated: '2024-02-07',
+      totalCopies: 3,
+      availableCopies: 2,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-03-30'
+    },
+    fullTextKeywords: ['software testing', 'quality assurance', 'test automation', 'unit testing', 'integration testing', 'system testing', 'acceptance testing', 'test cases', 'test planning', 'bug tracking', 'performance testing', 'security testing']
+  },
+
+  // TECNOLOGÍAS EMERGENTES
+  {
+    id: 'emerging-001',
+    title: 'Quantum Computing: An Applied Approach',
+    authors: ['Hidary Jack D.'],
+    type: 'book',
+    category: 'Tecnologías Emergentes',
+    tags: ['Quantum Computing', 'Quantum Algorithms', 'Quantum Physics'],
+    abstract: 'Comprehensive introduction to quantum computing with practical applications and programming examples.',
+    publishedYear: 2021,
+    publisher: 'Springer',
+    citations: 3450,
+    impactFactor: 6.8,
+    availability: 'digital-only',
+    isbn: '978-3030239213',
+    rating: 4.4,
+    reviewCount: 456,
+    language: 'English',
+    pageCount: 372,
+    thumbnail: 'https://images.pexels.com/photos/1181701/pexels-photo-1181701.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Quantum Physics', 'Advanced Computing', 'Cryptography'],
+    digitalUrl: 'https://digital.library.edu/books/quantum-computing-applied',
+    librarySystem: {
+      catalogId: 'CAT-EMERGING-001',
+      barcode: '31234567890163',
+      acquisitionDate: '2022-03-15',
+      lastUpdated: '2024-02-08',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 20,
+      digitalActiveUsers: 7
+    },
+    fullTextKeywords: ['quantum computing', 'quantum algorithms', 'quantum physics', 'qubits', 'quantum gates', 'quantum circuits', 'quantum entanglement', 'quantum supremacy', 'quantum programming', 'quantum cryptography', 'quantum machine learning', 'quantum simulation']
+  },
+  {
+    id: 'emerging-002',
+    title: 'Internet of Things: Architecture and Implementation',
+    authors: ['Raj Kamal'],
+    type: 'book',
+    category: 'Tecnologías Emergentes',
+    tags: ['IoT', 'Embedded Systems', 'Sensor Networks'],
+    abstract: 'Comprehensive guide to IoT architecture, protocols, and implementation strategies.',
+    publishedYear: 2020,
+    publisher: 'McGraw-Hill',
+    citations: 2890,
+    impactFactor: 5.3,
+    availability: 'available',
+    location: 'Section J, Shelf 1',
+    isbn: '978-1259029608',
+    rating: 4.1,
+    reviewCount: 345,
+    language: 'English',
+    pageCount: 456,
+    thumbnail: 'https://images.pexels.com/photos/1181703/pexels-photo-1181703.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Embedded Systems', 'Wireless Networks', 'Smart Devices'],
+    url: 'https://library.university.edu/catalog/iot-architecture-implementation',
+    librarySystem: {
+      catalogId: 'CAT-EMERGING-002',
+      barcode: '31234567890164',
+      acquisitionDate: '2021-05-20',
+      lastUpdated: '2024-02-09',
+      totalCopies: 3,
+      availableCopies: 2,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-04-01'
+    },
+    fullTextKeywords: ['internet of things', 'iot', 'embedded systems', 'sensor networks', 'wireless communication', 'mqtt', 'coap', 'edge computing', 'smart cities', 'industrial iot', 'wearable devices', 'home automation']
+  },
+  {
+    id: 'emerging-003',
+    title: 'Blockchain Technology: Principles and Applications',
+    authors: ['Zibin Zheng', 'Shaoan Xie', 'Hong-Ning Dai'],
+    type: 'book',
+    category: 'Tecnologías Emergentes',
+    tags: ['Blockchain', 'Cryptocurrency', 'Distributed Ledger'],
+    abstract: 'Comprehensive exploration of blockchain technology, cryptocurrencies, and decentralized applications.',
+    publishedYear: 2022,
+    publisher: 'Springer',
+    citations: 1890,
+    impactFactor: 4.7,
+    availability: 'available',
+    location: 'Section J, Shelf 3',
+    isbn: '978-3030320119',
+    rating: 4.3,
+    reviewCount: 234,
+    language: 'English',
+    pageCount: 328,
+    thumbnail: 'https://images.pexels.com/photos/1181705/pexels-photo-1181705.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Cryptocurrency', 'Decentralized Systems', 'Smart Contracts'],
+    url: 'https://library.university.edu/catalog/blockchain-technology-principles',
+    librarySystem: {
+      catalogId: 'CAT-EMERGING-003',
+      barcode: '31234567890165',
+      acquisitionDate: '2022-08-10',
+      lastUpdated: '2024-02-10',
+      totalCopies: 2,
+      availableCopies: 1,
+      reservedCopies: 0,
+      checkedOutCopies: 1,
+      dueDate: '2024-04-05'
+    },
+    fullTextKeywords: ['blockchain', 'cryptocurrency', 'distributed ledger', 'smart contracts', 'consensus algorithms', 'proof of work', 'proof of stake', 'decentralized applications', 'bitcoin', 'ethereum', 'hyperledger', 'digital currency']
+  },
+  {
+    id: 'emerging-004',
+    title: 'Augmented and Virtual Reality: Concepts and Applications',
+    authors: ['Steve Aukstakalnis'],
+    type: 'book',
+    category: 'Tecnologías Emergentes',
+    tags: ['AR', 'VR', 'Mixed Reality', 'Immersive Technology'],
+    abstract: 'Comprehensive guide to augmented and virtual reality technologies and their applications.',
+    publishedYear: 2021,
+    publisher: 'Academic Press',
+    citations: 1560,
+    impactFactor: 4.1,
+    availability: 'digital-only',
+    isbn: '978-0128009659',
+    rating: 4.0,
+    reviewCount: 189,
+    language: 'English',
+    pageCount: 392,
+    thumbnail: 'https://images.pexels.com/photos/1181707/pexels-photo-1181707.jpeg?auto=compress&cs=tinysrgb&w=300',
+    relatedTopics: ['Computer Graphics', 'Human-Computer Interaction', 'Game Development'],
+    digitalUrl: 'https://digital.library.edu/books/ar-vr-concepts-applications',
+    librarySystem: {
+      catalogId: 'CAT-EMERGING-004',
+      barcode: '31234567890166',
+      acquisitionDate: '2022-01-25',
+      lastUpdated: '2024-02-11',
+      totalCopies: 0,
+      availableCopies: 0,
+      reservedCopies: 0,
+      checkedOutCopies: 0,
+      digitalAccess: true,
+      digitalLicenses: 15,
+      digitalActiveUsers: 5
+    },
+    fullTextKeywords: ['augmented reality', 'virtual reality', 'mixed reality', 'immersive technology', 'computer graphics', 'human computer interaction', 'head mounted displays', 'motion tracking', 'spatial computing', 'haptic feedback', 'unity', 'unreal engine']
   }
 ];
 
@@ -752,7 +1718,7 @@ export const syncWithLibrarySystem = async (): Promise<LibrarySystemSync> => {
             resource.librarySystem.availableCopies + availableChange));
         
         resource.librarySystem.checkedOutCopies = 
-          resource.librarySystem.totalCopies - resource.librarySystem.availableCopies - resource.librarySystem.reservedCopies;
+          resource.library System.totalCopies - resource.librarySystem.availableCopies - resource.librarySystem.reservedCopies;
         
         // Actualizar estado de disponibilidad
         if (resource.librarySystem.availableCopies > 0) {
@@ -798,6 +1764,9 @@ export interface KeywordExtractionResult {
   method: 'tf-idf' | 'textrank' | 'yake' | 'hybrid';
   processingTime: number;
 }
+
+// Cache para análisis de keywords
+let keywordCache: { [key: string]: KeywordExtractionResult } = {};
 
 // Palabras vacías en español e inglés
 const stopWords = new Set([
@@ -1034,6 +2003,85 @@ export const searchResourcesByTopic = (topic: string): Resource[] => {
   });
 };
 
+// Nueva función para buscar por keywords extraídas
+export const searchResourcesByKeywords = (keywords: string[]): Resource[] => {
+  const keywordSet = new Set(keywords.map(k => k.toLowerCase()));
+  
+  return mockResources.filter(resource => {
+    // Buscar coincidencias en keywords del texto completo
+    const keywordMatches = resource.fullTextKeywords?.some(keyword => 
+      keywordSet.has(keyword.toLowerCase())
+    ) || false;
+    
+    // Buscar coincidencias en tags y temas relacionados
+    const tagMatches = resource.tags.some(tag => 
+      keywords.some(keyword => tag.toLowerCase().includes(keyword.toLowerCase()))
+    );
+    
+    const topicMatches = resource.relatedTopics.some(topic => 
+      keywords.some(keyword => topic.toLowerCase().includes(keyword.toLowerCase()))
+    );
+    
+    // Buscar coincidencias en título y abstract
+    const titleMatches = keywords.some(keyword => 
+      resource.title.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    const abstractMatches = keywords.some(keyword => 
+      resource.abstract.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    return keywordMatches || tagMatches || topicMatches || titleMatches || abstractMatches;
+  }).sort((a, b) => {
+    // Calcular puntuación de relevancia basada en coincidencias de keywords
+    const aScore = keywords.reduce((score, keyword) => {
+      const kw = keyword.toLowerCase();
+      let points = 0;
+      
+      if (a.title.toLowerCase().includes(kw)) points += 5;
+      if (a.tags.some(tag => tag.toLowerCase().includes(kw))) points += 4;
+      if (a.fullTextKeywords?.some(k => k.toLowerCase().includes(kw))) points += 3;
+      if (a.relatedTopics.some(topic => topic.toLowerCase().includes(kw))) points += 2;
+      if (a.abstract.toLowerCase().includes(kw)) points += 1;
+      
+      return score + points;
+    }, 0);
+    
+    const bScore = keywords.reduce((score, keyword) => {
+      const kw = keyword.toLowerCase();
+      let points = 0;
+      
+      if (b.title.toLowerCase().includes(kw)) points += 5;
+      if (b.tags.some(tag => tag.toLowerCase().includes(kw))) points += 4;
+      if (b.fullTextKeywords?.some(k => k.toLowerCase().includes(kw))) points += 3;
+      if (b.relatedTopics.some(topic => topic.toLowerCase().includes(kw))) points += 2;
+      if (b.abstract.toLowerCase().includes(kw)) points += 1;
+      
+      return score + points;
+    }, 0);
+    
+    return bScore - aScore;
+  });
+};
+
+// Funciones para el cache de keywords
+export const getCachedKeywordAnalysis = (text: string): KeywordExtractionResult | null => {
+  const cacheKey = text.toLowerCase().trim();
+  return keywordCache[cacheKey] || null;
+};
+
+export const cacheKeywordAnalysis = (text: string, result: KeywordExtractionResult): void => {
+  const cacheKey = text.toLowerCase().trim();
+  keywordCache[cacheKey] = result;
+  
+  // Limpiar cache si tiene más de 100 entradas
+  if (Object.keys(keywordCache).length > 100) {
+    const keys = Object.keys(keywordCache);
+    const keysToDelete = keys.slice(0, 20); // Eliminar las 20 más antiguas
+    keysToDelete.forEach(key => delete keywordCache[key]);
+  }
+};
+
 // Temas populares expandidos por categorías
 export const popularTopics = [
   // AI y ML
@@ -1074,7 +2122,7 @@ export const popularTopics = [
   
   // Tecnologías Emergentes
   'Quantum Computing', 'Internet of Things', 'Augmented Reality', 'Virtual Reality',
-  'Edge Computing', '5G Networks', 'Nanotechnology', 'Biotechnology'
+  'Blockchain Technology', 'Edge Computing', '5G Networks', 'Nanotechnology'
 ];
 
 // ==================== FUNCIONES DE GESTIÓN DE USUARIOS ====================
