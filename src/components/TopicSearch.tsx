@@ -202,7 +202,7 @@ export function TopicSearch() {
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
+            <Search className=" top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
             <input
               type="text"
               value={topic}
