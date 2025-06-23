@@ -209,7 +209,7 @@ export function TopicSearch() {
               onChange={(e) => setTopic(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch(topic)}
               placeholder="Ej: Machine Learning, Quantum Computing, Cybersecurity..."
-              className="w-13 pl-16 pr-32 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+              className="w-13 pl-10 pr-32 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
             />
             <button
               onClick={() => handleSearch(topic)}
