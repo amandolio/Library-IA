@@ -16,7 +16,10 @@ import {
   RefreshCw,
   Database,
   Layers,
-  Sparkles
+  Sparkles,
+  FileText,
+  Target,
+  Activity
 } from 'lucide-react';
 import { Resource, KeywordExtractionResult, BookCategory } from '../types';
 import { 
@@ -34,7 +37,7 @@ import {
 import { ResourceCard } from './ResourceCard';
 
 export function TopicSearch() {
-  const [topic, setTopic] = useState('');
+  const [inputText, setInputText] = useState('');
   const [searchResults, setSearchResults] = useState<Resource[]>([]);
   const [keywordRecommendations, setKeywordRecommendations] = useState<Resource[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -44,6 +47,9 @@ export function TopicSearch() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [syncStatus, setSyncStatus] = useState(getLibrarySyncStatus());
   const [isSyncing, setIsSyncing] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<'tf-idf' | 'textrank' | 'yake' | 'hybrid'>('hybrid');
+  const [topK, setTopK] = useState(15);
+  const [searchMode, setSearchMode] = useState<'simple' | 'nlp'>('simple');
 
   // Actualizar estado de sincronización cada 30 segundos
   useEffect(() => {
@@ -54,56 +60,98 @@ export function TopicSearch() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSearch = async (searchTopic: string) => {
-    if (!searchTopic.trim()) return;
+  const methods = [
+    {
+      id: 'tf-idf' as const,
+      name: 'TF-IDF',
+      description: 'Frecuencia de términos e inversa de frecuencia de documentos',
+      color: 'blue',
+      icon: BarChart3
+    },
+    {
+      id: 'textrank' as const,
+      name: 'TextRank',
+      description: 'Algoritmo basado en grafos similar a PageRank',
+      color: 'green',
+      icon: Activity
+    },
+    {
+      id: 'yake' as const,
+      name: 'YAKE',
+      description: 'Extracción no supervisada de keywords',
+      color: 'purple',
+      icon: Target
+    },
+    {
+      id: 'hybrid' as const,
+      name: 'Híbrido',
+      description: 'Combinación de múltiples métodos para mejor precisión',
+      color: 'orange',
+      icon: Layers
+    }
+  ];
+
+  const handleSearch = async () => {
+    if (!inputText.trim()) return;
     
     setIsSearching(true);
     setHasSearched(true);
     setKeywordAnalysis(null);
     setKeywordRecommendations([]);
+    setSearchResults([]);
     
-    // Simular delay de búsqueda AI
-    setTimeout(async () => {
-      const results = searchResourcesByTopic(searchTopic);
-      setSearchResults(results);
-      setIsSearching(false);
-      
-      // Analizar keywords del tema de búsqueda
-      if (searchTopic.length > 5) {
+    try {
+      if (searchMode === 'simple') {
+        // Búsqueda simple por tema
+        setTimeout(() => {
+          const results = searchResourcesByTopic(inputText);
+          setSearchResults(results);
+          setIsSearching(false);
+        }, 800);
+      } else {
+        // Búsqueda avanzada con análisis PLN
         setIsAnalyzing(true);
-        try {
-          // Verificar si ya tenemos análisis en caché
-          let keywordResult = getCachedKeywordAnalysis(searchTopic);
-          
-          if (!keywordResult) {
-            // Si no está en caché, hacer nuevo análisis
-            keywordResult = await extractKeywords(searchTopic, 'hybrid', 15);
-            // Guardar en caché
-            cacheKeywordAnalysis(searchTopic, keywordResult);
-          }
-          
-          setKeywordAnalysis(keywordResult);
-          
-          // Buscar recursos basados en las keywords extraídas
-          if (keywordResult.keywords.length > 0) {
-            const keywordBasedResults = searchResourcesByKeywords(keywordResult.keywords);
-            // Filtrar resultados que no estén ya en los resultados principales
-            const uniqueKeywordResults = keywordBasedResults.filter(
-              kwRes => !results.some(res => res.id === kwRes.id)
-            );
-            setKeywordRecommendations(uniqueKeywordResults.slice(0, 6));
-          }
-        } catch (error) {
-          console.error('Error analyzing keywords:', error);
+        
+        // Verificar si ya tenemos análisis en caché
+        let keywordResult = getCachedKeywordAnalysis(inputText);
+        
+        if (!keywordResult) {
+          // Si no está en caché, hacer nuevo análisis
+          keywordResult = await extractKeywords(inputText, selectedMethod, topK);
+          // Guardar en caché
+          cacheKeywordAnalysis(inputText, keywordResult);
         }
+        
+        setKeywordAnalysis(keywordResult);
         setIsAnalyzing(false);
+        
+        // Buscar recursos basados en las keywords extraídas
+        if (keywordResult.keywords.length > 0) {
+          setTimeout(() => {
+            const keywordBasedResults = searchResourcesByKeywords(keywordResult.keywords);
+            setSearchResults(keywordBasedResults);
+            setIsSearching(false);
+          }, 500);
+        } else {
+          setIsSearching(false);
+        }
       }
-    }, 800);
+    } catch (error) {
+      console.error('Error in search:', error);
+      setIsSearching(false);
+      setIsAnalyzing(false);
+    }
   };
 
   const handleTopicClick = (selectedTopic: string) => {
-    setTopic(selectedTopic);
-    handleSearch(selectedTopic);
+    setInputText(selectedTopic);
+    setSearchMode('simple');
+    // Ejecutar búsqueda automáticamente
+    setTimeout(() => {
+      const results = searchResourcesByTopic(selectedTopic);
+      setSearchResults(results);
+      setHasSearched(true);
+    }, 100);
   };
 
   const handleResourceClick = (resource: Resource) => {
@@ -148,6 +196,25 @@ export function TopicSearch() {
     };
   };
 
+  const sampleTexts = [
+    {
+      title: 'Investigación en IA',
+      text: 'Estoy trabajando en un proyecto de investigación sobre inteligencia artificial aplicada al procesamiento de lenguaje natural. Necesito recursos sobre algoritmos de machine learning, redes neuronales profundas y técnicas de análisis semántico para desarrollar un sistema de comprensión de texto automático.'
+    },
+    {
+      title: 'Desarrollo Web Moderno',
+      text: 'Quiero aprender sobre las últimas tecnologías de desarrollo web frontend y backend. Me interesan los frameworks de JavaScript como React y Vue, así como tecnologías de servidor como Node.js, bases de datos NoSQL y arquitecturas de microservicios para crear aplicaciones escalables.'
+    },
+    {
+      title: 'Ciberseguridad Empresarial',
+      text: 'Necesito información sobre estrategias de ciberseguridad para empresas, incluyendo protección contra ataques de malware, técnicas de hacking ético, criptografía avanzada, gestión de vulnerabilidades y implementación de políticas de seguridad en redes corporativas.'
+    },
+    {
+      title: 'Ciencia de Datos',
+      text: 'Estoy interesado en aprender sobre análisis de big data, visualización de información, estadística aplicada y algoritmos de minería de datos. Quiero dominar herramientas como Python, R y técnicas de machine learning para extraer insights valiosos de grandes conjuntos de datos.'
+    }
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -156,10 +223,10 @@ export function TopicSearch() {
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <Lightbulb className="h-8 w-8" />
-              <h2 className="text-3xl font-bold">Búsqueda Inteligente por Tema</h2>
+              <h2 className="text-3xl font-bold">Búsqueda Inteligente con PLN</h2>
             </div>
             <p className="text-blue-100 text-lg">
-              Sistema avanzado con PLN, sincronización bibliotecaria y análisis de keywords en tiempo real.
+              Busca por temas simples o introduce texto en lenguaje natural para análisis avanzado con PLN
             </p>
           </div>
           
@@ -198,95 +265,256 @@ export function TopicSearch() {
         </div>
       </div>
 
-      {/* Search Input */}
+      {/* Search Mode Selection */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
         <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-2 text-gray-400 h-6 w-6" />
-            <input
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch(topic)}
-              placeholder="Ej: Machine Learning, Quantum Computing, Cybersecurity..."
-              className="w-13 pl-12 pr-32 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-            />
+          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <Brain className="h-5 w-5 mr-2 text-purple-600" />
+            Modo de Búsqueda
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
-              onClick={() => handleSearch(topic)}
-              disabled={!topic.trim() || isSearching}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+              onClick={() => setSearchMode('simple')}
+              className={`p-4 border rounded-lg transition-all text-left ${
+                searchMode === 'simple'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
             >
-              {isSearching ? (
+              <div className="flex items-center space-x-3 mb-2">
+                <Search className={`h-5 w-5 ${
+                  searchMode === 'simple' ? 'text-blue-600' : 'text-gray-500'
+                }`} />
+                <span className={`font-semibold ${
+                  searchMode === 'simple' ? 'text-blue-900' : 'text-gray-900'
+                }`}>
+                  Búsqueda Simple
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                Busca por temas específicos como "Machine Learning", "Python", "Ciberseguridad"
+              </p>
+            </button>
+
+            <button
+              onClick={() => setSearchMode('nlp')}
+              className={`p-4 border rounded-lg transition-all text-left ${
+                searchMode === 'nlp'
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-3 mb-2">
+                <Brain className={`h-5 w-5 ${
+                  searchMode === 'nlp' ? 'text-purple-600' : 'text-gray-500'
+                }`} />
+                <span className={`font-semibold ${
+                  searchMode === 'nlp' ? 'text-purple-900' : 'text-gray-900'
+                }`}>
+                  Análisis PLN Avanzado
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                Introduce texto en lenguaje natural y extrae keywords automáticamente
+              </p>
+            </button>
+          </div>
+        </div>
+
+        {/* NLP Configuration (only show when NLP mode is selected) */}
+        {searchMode === 'nlp' && (
+          <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <h4 className="font-semibold text-purple-900 mb-3 flex items-center">
+              <Zap className="h-4 w-4 mr-2" />
+              Configuración del Análisis PLN
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+              {methods.map((method) => {
+                const Icon = method.icon;
+                return (
+                  <button
+                    key={method.id}
+                    onClick={() => setSelectedMethod(method.id)}
+                    className={`p-3 border rounded-lg transition-all text-left ${
+                      selectedMethod === method.id
+                        ? `border-${method.color}-500 bg-${method.color}-50`
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Icon className={`h-4 w-4 ${
+                        selectedMethod === method.id ? `text-${method.color}-600` : 'text-gray-500'
+                      }`} />
+                      <span className={`text-sm font-semibold ${
+                        selectedMethod === method.id ? `text-${method.color}-900` : 'text-gray-900'
+                      }`}>
+                        {method.name}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600">{method.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700">Keywords a extraer:</label>
+                <select
+                  value={topK}
+                  onChange={(e) => setTopK(Number(e.target.value))}
+                  className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                  <option value={25}>25</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sample Texts for NLP Mode */}
+        {searchMode === 'nlp' && (
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <FileText className="h-4 w-4 mr-2 text-green-600" />
+              Textos de Ejemplo
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {sampleTexts.map((sample, index) => (
+                <button
+                  key={index}
+                  onClick={() => setInputText(sample.text)}
+                  className="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                >
+                  <h5 className="font-medium text-gray-900 mb-1">{sample.title}</h5>
+                  <p className="text-sm text-gray-600 line-clamp-2">{sample.text}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Search Input */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" />
+            {searchMode === 'simple' ? (
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Ej: Machine Learning, Quantum Computing, Cybersecurity..."
+                className="w-full pl-12 pr-32 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+              />
+            ) : (
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Introduce tu consulta en lenguaje natural. Ej: 'Estoy trabajando en un proyecto de inteligencia artificial y necesito recursos sobre machine learning y procesamiento de lenguaje natural...'"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg resize-none"
+                rows={4}
+              />
+            )}
+            <button
+              onClick={handleSearch}
+              disabled={!inputText.trim() || isSearching || isAnalyzing}
+              className={`absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 ${
+                searchMode === 'simple' 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
+            >
+              {isSearching || isAnalyzing ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Analizando...</span>
+                  <span>{isAnalyzing ? 'Analizando...' : 'Buscando...'}</span>
                 </>
               ) : (
                 <>
-                  <Brain className="h-4 w-4" />
-                  <span>Buscar con IA</span>
+                  {searchMode === 'simple' ? (
+                    <Search className="h-4 w-4" />
+                  ) : (
+                    <Brain className="h-4 w-4" />
+                  )}
+                  <span>{searchMode === 'simple' ? 'Buscar' : 'Analizar con PLN'}</span>
                 </>
               )}
             </button>
           </div>
+          
+          {searchMode === 'nlp' && inputText && (
+            <div className="mt-2 text-sm text-gray-500">
+              {inputText.length} caracteres | {inputText.split(/\s+/).filter(w => w.length > 0).length} palabras
+            </div>
+          )}
         </div>
 
-        {/* Category Filter */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-            <Layers className="h-4 w-4 mr-2" />
-            Categorías Temáticas
-          </h3>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                selectedCategory === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-              }`}
-            >
-              Todos los Temas
-            </button>
-            {bookCategories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                  selectedCategory === category.id
-                    ? `bg-${category.color}-600 text-white`
-                    : `bg-${category.color}-50 text-${category.color}-700 hover:bg-${category.color}-100`
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Category Filter (only for simple mode) */}
+        {searchMode === 'simple' && (
+          <>
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <Layers className="h-4 w-4 mr-2" />
+                Categorías Temáticas
+              </h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                    selectedCategory === 'all'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                  }`}
+                >
+                  Todos los Temas
+                </button>
+                {bookCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                      selectedCategory === category.id
+                        ? `bg-${category.color}-600 text-white`
+                        : `bg-${category.color}-50 text-${category.color}-700 hover:bg-${category.color}-100`
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Popular Topics */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            {selectedCategory === 'all' ? 'Temas Populares' : 
-             bookCategories.find(cat => cat.id === selectedCategory)?.name || 'Temas'}
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {filteredTopics.slice(0, 20).map((popularTopic, index) => (
-              <button
-                key={index}
-                onClick={() => handleTopicClick(popularTopic)}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors"
-              >
-                {popularTopic}
-              </button>
-            ))}
-          </div>
-        </div>
+            {/* Popular Topics */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                {selectedCategory === 'all' ? 'Temas Populares' : 
+                 bookCategories.find(cat => cat.id === selectedCategory)?.name || 'Temas'}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {filteredTopics.slice(0, 20).map((popularTopic, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleTopicClick(popularTopic)}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  >
+                    {popularTopic}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Keyword Analysis */}
-      {(keywordAnalysis || isAnalyzing) && (
+      {/* Keyword Analysis Results (only for NLP mode) */}
+      {searchMode === 'nlp' && (keywordAnalysis || isAnalyzing) && (
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center space-x-3 mb-4">
             <Brain className="h-6 w-6 text-purple-600" />
@@ -307,9 +535,15 @@ export function TopicSearch() {
                   {keywordAnalysis.keywords.map((keyword, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 bg-blue-50 text-blue-700 text-sm rounded-md border border-blue-200"
+                      className={`px-2 py-1 text-sm rounded-md border ${
+                        index < 5 
+                          ? 'bg-purple-100 text-purple-800 border-purple-200'
+                          : index < 10
+                          ? 'bg-blue-100 text-blue-800 border-blue-200'
+                          : 'bg-gray-100 text-gray-800 border-gray-200'
+                      }`}
                     >
-                      {keyword}
+                      #{index + 1} {keyword}
                     </span>
                   ))}
                 </div>
@@ -372,72 +606,72 @@ export function TopicSearch() {
       )}
 
       {/* Loading State */}
-      {isSearching && (
+      {(isSearching || isAnalyzing) && (
         <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Procesando con IA Avanzada...</h3>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {isAnalyzing ? 'Procesando con PLN Avanzado...' : 'Buscando Recursos...'}
+          </h3>
           <p className="text-gray-600 mb-4">
-            Analizando "{topic}" con técnicas de PLN y sincronización bibliotecaria
+            {searchMode === 'nlp' 
+              ? `Analizando "${inputText.slice(0, 50)}..." con técnicas de PLN`
+              : `Buscando recursos para "${inputText}"`
+            }
           </p>
           <div className="flex justify-center space-x-6 text-sm text-gray-500">
-            <div className="flex items-center">
-              <Brain className="h-4 w-4 mr-1" />
-              Extrayendo keywords
-            </div>
-            <div className="flex items-center">
-              <Database className="h-4 w-4 mr-1" />
-              Consultando catálogo
-            </div>
-            <div className="flex items-center">
-              <BarChart3 className="h-4 w-4 mr-1" />
-              Calculando relevancia
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Keyword-based Recommendations */}
-      {keywordRecommendations.length > 0 && !isSearching && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center space-x-3 mb-6">
-            <Sparkles className="h-6 w-6 text-purple-600" />
-            <h3 className="text-xl font-bold text-gray-900">
-              Recomendaciones Basadas en Keywords PLN
-            </h3>
-          </div>
-          <p className="text-gray-600 mb-4">
-            Recursos adicionales encontrados mediante análisis semántico de las keywords extraídas
-          </p>
-          <div className="grid grid-cols-1 gap-4">
-            {keywordRecommendations.map((resource, index) => (
-              <div key={resource.id} className="relative">
-                <div className="absolute -left-4 top-4 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold z-10">
-                  {index + 1}
+            {searchMode === 'nlp' ? (
+              <>
+                <div className="flex items-center">
+                  <Brain className="h-4 w-4 mr-1" />
+                  Extrayendo keywords
                 </div>
-                <div className="ml-6">
-                  <div 
-                    onClick={() => handleResourceClick(resource)}
-                    className="cursor-pointer transform hover:scale-[1.02] transition-transform"
-                  >
-                    <ResourceCard resource={resource} />
-                  </div>
+                <div className="flex items-center">
+                  <Database className="h-4 w-4 mr-1" />
+                  Consultando catálogo
                 </div>
-              </div>
-            ))}
+                <div className="flex items-center">
+                  <BarChart3 className="h-4 w-4 mr-1" />
+                  Calculando relevancia
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center">
+                  <Search className="h-4 w-4 mr-1" />
+                  Buscando coincidencias
+                </div>
+                <div className="flex items-center">
+                  <Database className="h-4 w-4 mr-1" />
+                  Consultando catálogo
+                </div>
+                <div className="flex items-center">
+                  <BarChart3 className="h-4 w-4 mr-1" />
+                  Ordenando resultados
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
       {/* Search Results */}
-      {!isSearching && hasSearched && (
+      {!isSearching && !isAnalyzing && hasSearched && (
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xl font-bold text-gray-900">
-                Recursos encontrados para "{topic}"
+                {searchMode === 'nlp' 
+                  ? 'Recursos Recomendados por PLN'
+                  : `Recursos encontrados para "${inputText}"`
+                }
               </h3>
               <p className="text-gray-600 mt-1">
                 {searchResults.length} {searchResults.length === 1 ? 'recurso encontrado' : 'recursos encontrados'}
+                {searchMode === 'nlp' && keywordAnalysis && (
+                  <span className="ml-2 text-purple-600 text-sm">
+                    (basado en {keywordAnalysis.keywords.length} keywords extraídas)
+                  </span>
+                )}
                 {syncStatus.updatedResources > 0 && (
                   <span className="ml-2 text-green-600 text-sm">
                     ({syncStatus.updatedResources} actualizados recientemente)
@@ -461,7 +695,9 @@ export function TopicSearch() {
                 
                 return (
                   <div key={resource.id} className="relative">
-                    <div className="absolute -left-4 top-4 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold z-10">
+                    <div className={`absolute -left-4 top-4 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold z-10 ${
+                      searchMode === 'nlp' ? 'bg-purple-600' : 'bg-blue-600'
+                    }`}>
                       {index + 1}
                     </div>
                     <div className="ml-6">
@@ -593,20 +829,30 @@ export function TopicSearch() {
                         {/* Información adicional */}
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <div className="flex items-center justify-between text-sm text-gray-600">
-                            <span>Relevancia del tema: <strong className="text-gray-900">Alta</strong></span>
+                            <span>
+                              Relevancia: <strong className="text-gray-900">
+                                {searchMode === 'nlp' ? 'Alta (PLN)' : 'Alta'}
+                              </strong>
+                            </span>
                             <span>Última actualización: <strong className="text-gray-900">
                               {resource.librarySystem?.lastUpdated || 'N/A'}
                             </strong></span>
                           </div>
-                          {resource.fullTextKeywords && (
+                          {searchMode === 'nlp' && resource.fullTextKeywords && (
                             <div className="mt-2">
-                              <span className="text-xs text-gray-500">Keywords PLN: </span>
+                              <span className="text-xs text-gray-500">Keywords coincidentes: </span>
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {resource.fullTextKeywords.slice(0, 8).map((keyword, idx) => (
-                                  <span key={idx} className="px-1.5 py-0.5 bg-purple-50 text-purple-600 text-xs rounded">
-                                    {keyword}
-                                  </span>
-                                ))}
+                                {resource.fullTextKeywords
+                                  .filter(keyword => keywordAnalysis?.keywords.some(k => 
+                                    k.toLowerCase().includes(keyword.toLowerCase()) || 
+                                    keyword.toLowerCase().includes(k.toLowerCase())
+                                  ))
+                                  .slice(0, 8)
+                                  .map((keyword, idx) => (
+                                    <span key={idx} className="px-1.5 py-0.5 bg-purple-50 text-purple-600 text-xs rounded">
+                                      {keyword}
+                                    </span>
+                                  ))}
                               </div>
                             </div>
                           )}
@@ -622,16 +868,31 @@ export function TopicSearch() {
               <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron recursos</h3>
               <p className="text-gray-600 mb-4">
-                No hay recursos disponibles para el tema "{topic}". 
+                {searchMode === 'nlp' 
+                  ? 'No hay recursos disponibles para las keywords extraídas del texto.'
+                  : `No hay recursos disponibles para el tema "${inputText}".`
+                }
               </p>
               <div className="space-y-2 text-sm text-gray-500">
                 <p>Sugerencias:</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>Intenta con términos más generales</li>
-                  <li>Verifica la ortografía</li>
-                  <li>Usa sinónimos o términos relacionados</li>
-                  <li>Prueba con los temas populares sugeridos</li>
-                  <li>Selecciona una categoría específica</li>
+                  {searchMode === 'nlp' ? (
+                    <>
+                      <li>Intenta con un texto más específico o detallado</li>
+                      <li>Incluye términos técnicos relacionados con tu área de interés</li>
+                      <li>Cambia el método de análisis PLN</li>
+                      <li>Prueba con el modo de búsqueda simple</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>Intenta con términos más generales</li>
+                      <li>Verifica la ortografía</li>
+                      <li>Usa sinónimos o términos relacionados</li>
+                      <li>Prueba con los temas populares sugeridos</li>
+                      <li>Selecciona una categoría específica</li>
+                      <li>Prueba con el modo de análisis PLN</li>
+                    </>
+                  )}
                 </ul>
               </div>
             </div>
@@ -640,31 +901,31 @@ export function TopicSearch() {
       )}
 
       {/* Initial State */}
-      {!hasSearched && !isSearching && (
+      {!hasSearched && !isSearching && !isAnalyzing && (
         <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
           <BookOpen className="h-16 w-16 text-blue-600 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Sistema Bibliotecario Inteligente
+            Sistema Bibliotecario Inteligente con PLN
           </h3>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Nuestro sistema avanzado combina IA, PLN y sincronización bibliotecaria en tiempo real 
-            para ofrecerte los recursos más relevantes con información actualizada de disponibilidad.
+            Busca por temas específicos o introduce texto en lenguaje natural para análisis avanzado con PLN. 
+            Nuestro sistema extrae keywords automáticamente y recomienda recursos relevantes.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
             <div className="p-4 bg-blue-50 rounded-lg">
-              <Brain className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <h4 className="font-semibold text-gray-900 mb-1">IA Avanzada</h4>
-              <p className="text-sm text-gray-600">Análisis semántico con múltiples algoritmos de PLN</p>
+              <Search className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <h4 className="font-semibold text-gray-900 mb-1">Búsqueda Simple</h4>
+              <p className="text-sm text-gray-600">Busca por temas específicos como "Machine Learning"</p>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <Brain className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+              <h4 className="font-semibold text-gray-900 mb-1">Análisis PLN</h4>
+              <p className="text-sm text-gray-600">Introduce texto natural y extrae keywords automáticamente</p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
               <Database className="h-8 w-8 text-green-600 mx-auto mb-2" />
               <h4 className="font-semibold text-gray-900 mb-1">Sincronización</h4>
               <p className="text-sm text-gray-600">Datos actualizados del sistema bibliotecario</p>
-            </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <Tag className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-              <h4 className="font-semibold text-gray-900 mb-1">Keywords PLN</h4>
-              <p className="text-sm text-gray-600">Extracción automática con TF-IDF, TextRank y YAKE</p>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg">
               <ExternalLink className="h-8 w-8 text-orange-600 mx-auto mb-2" />
