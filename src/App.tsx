@@ -6,7 +6,7 @@ import { RecommendationsPanel } from './components/RecommendationsPanel';
 import { AdvancedSearch } from './components/AdvancedSearch';
 import { TopicSearch } from './components/TopicSearch';
 import { AuthModal } from './components/AuthModal';
-import { KeywordAnalysisPanel } from './components/KeywordAnalysisPanel';
+import { PlagiarismDetectionPanel } from './components/PlagiarismDetectionPanel';
 import { LibrarySyncPanel } from './components/LibrarySyncPanel';
 import { mockUser, mockResources, getRecommendations, updateSessionActivity } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -132,8 +132,8 @@ function App() {
         return <RecommendationsPanel recommendations={recommendations} />;
       case 'search':
         return <AdvancedSearch resources={mockResources} />;
-      case 'keyword-analysis':
-        return <KeywordAnalysisPanel />;
+      case 'plagiarism-detection':
+        return <PlagiarismDetectionPanel />;
       case 'library-sync':
         return <LibrarySyncPanel />;
       case 'favorites':

@@ -12,7 +12,7 @@ import {
   BarChart3,
   Lightbulb,
   Database,
-  Tag
+  Shield
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,7 +26,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'topic-search', label: 'Búsqueda por Tema', icon: Lightbulb },
     { id: 'search', label: 'Búsqueda Avanzada', icon: Search },
     { id: 'recommendations', label: 'Recomendaciones IA', icon: Brain },
-    { id: 'keyword-analysis', label: 'Análisis PLN', icon: Tag },
+    { id: 'plagiarism-detection', label: 'Detección de Plagios', icon: Shield },
     { id: 'library-sync', label: 'Sincronización', icon: Database },
     { id: 'favorites', label: 'Favoritos', icon: Star },
     { id: 'history', label: 'Historial', icon: History },
