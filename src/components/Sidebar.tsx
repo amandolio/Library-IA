@@ -12,7 +12,8 @@ import {
   BarChart3,
   Lightbulb,
   Database,
-  Shield
+  Shield,
+  Globe
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,6 +25,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'topic-search', label: 'Búsqueda por Tema', icon: Lightbulb },
+    { id: 'academic-search', label: 'APIs Académicas', icon: Globe },
     { id: 'search', label: 'Búsqueda Avanzada', icon: Search },
     { id: 'recommendations', label: 'Recomendaciones IA', icon: Brain },
     { id: 'plagiarism-detection', label: 'Detección de Plagios', icon: Shield },

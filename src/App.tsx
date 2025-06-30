@@ -8,6 +8,7 @@ import { TopicSearch } from './components/TopicSearch';
 import { AuthModal } from './components/AuthModal';
 import { PlagiarismDetectionPanel } from './components/PlagiarismDetectionPanel';
 import { LibrarySyncPanel } from './components/LibrarySyncPanel';
+import { AcademicSearchPanel } from './components/AcademicSearchPanel';
 import { mockUser, mockResources, getRecommendations, updateSessionActivity } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { User } from './types';
@@ -128,6 +129,8 @@ function App() {
         );
       case 'topic-search':
         return <TopicSearch />;
+      case 'academic-search':
+        return <AcademicSearchPanel />;
       case 'recommendations':
         return <RecommendationsPanel recommendations={recommendations} />;
       case 'search':
