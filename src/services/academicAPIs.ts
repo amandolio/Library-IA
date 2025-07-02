@@ -4,22 +4,22 @@ import { Resource, LibrarySystemInfo } from '../types';
 // Configuración de APIs
 const API_CONFIG = {
   crossref: {
-    baseUrl: '/api/crossref/works',
+    baseUrl: 'https://api.crossref.org/works',
     userAgent: 'LibraryAI/1.0 (mailto:contact@libraryai.edu)'
   },
   openLibrary: {
-    baseUrl: '/api/openlibrary',
-    searchUrl: '/api/openlibrary/search.json'
+    baseUrl: 'https://openlibrary.org',
+    searchUrl: 'https://openlibrary.org/search.json'
   },
   arxiv: {
-    baseUrl: '/api/arxiv/api/query'
+    baseUrl: 'https://export.arxiv.org/api/query'
   },
   semanticScholar: {
-    baseUrl: '/api/semantic/graph/v1',
+    baseUrl: 'https://api.semanticscholar.org/graph/v1',
     apiKey: import.meta.env.VITE_SEMANTIC_SCHOLAR_API_KEY || ''
   },
   googleBooks: {
-    baseUrl: '/api/googlebooks/books/v1/volumes',
+    baseUrl: 'https://www.googleapis.com/books/v1/volumes',
     apiKey: import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || ''
   }
 };
@@ -130,6 +130,15 @@ export class AcademicAPIService {
     limit.lastCall = Date.now();
   }
 
+  // Validar si una API key es válida (no es placeholder)
+  private isValidApiKey(apiKey: string): boolean {
+    return apiKey && 
+           apiKey.length > 10 && 
+           !apiKey.includes('your_') && 
+           !apiKey.includes('api_key_here') &&
+           !apiKey.includes('placeholder');
+  }
+
   // Búsqueda en CrossRef (artículos académicos y DOIs)
   async searchCrossRef(query: string, limit: number = 20): Promise<Resource[]> {
     try {
@@ -138,7 +147,11 @@ export class AcademicAPIService {
       const encodedQuery = encodeURIComponent(query);
       const url = `${API_CONFIG.crossref.baseUrl}?query=${encodedQuery}&rows=${limit}&sort=relevance&order=desc`;
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': API_CONFIG.crossref.userAgent
+        }
+      });
 
       if (!response.ok) {
         throw new Error(`CrossRef API error: ${response.status}`);
@@ -199,22 +212,31 @@ export class AcademicAPIService {
   // Búsqueda en Semantic Scholar (papers académicos)
   async searchSemanticScholar(query: string, limit: number = 20): Promise<Resource[]> {
     try {
+      // Verificar si tenemos una API key válida
+      const apiKey = API_CONFIG.semanticScholar.apiKey;
+      if (!this.isValidApiKey(apiKey)) {
+        console.warn('Semantic Scholar: API key no configurada o inválida. Saltando búsqueda para evitar errores 500.');
+        console.info('Para obtener una API key válida, visita: https://www.semanticscholar.org/product/api');
+        return [];
+      }
+
       await this.checkRateLimit('semanticScholar');
       
       const encodedQuery = encodeURIComponent(query);
       const url = `${API_CONFIG.semanticScholar.baseUrl}/paper/search?query=${encodedQuery}&limit=${limit}&fields=paperId,title,abstract,authors,year,venue,citationCount,influentialCitationCount,fieldsOfStudy,url,openAccessPdf`;
       
       const headers: HeadersInit = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey
       };
-      
-      if (API_CONFIG.semanticScholar.apiKey) {
-        headers['x-api-key'] = API_CONFIG.semanticScholar.apiKey;
-      }
       
       const response = await fetch(url, { headers });
       
       if (!response.ok) {
+        if (response.status === 429) {
+          console.warn('Semantic Scholar: Rate limit exceeded. Esperando antes del siguiente intento...');
+          return [];
+        }
         throw new Error(`Semantic Scholar API error: ${response.status}`);
       }
 
@@ -234,13 +256,20 @@ export class AcademicAPIService {
       const encodedQuery = encodeURIComponent(query);
       let url = `${API_CONFIG.googleBooks.baseUrl}?q=${encodedQuery}&maxResults=${limit}&orderBy=relevance`;
       
-      if (API_CONFIG.googleBooks.apiKey) {
-        url += `&key=${API_CONFIG.googleBooks.apiKey}`;
+      const apiKey = API_CONFIG.googleBooks.apiKey;
+      if (this.isValidApiKey(apiKey)) {
+        url += `&key=${apiKey}`;
+      } else {
+        console.info('Google Books: Usando API sin key (límites más restrictivos)');
       }
       
       const response = await fetch(url);
       
       if (!response.ok) {
+        if (response.status === 429) {
+          console.warn('Google Books: Rate limit exceeded. Considera obtener una API key.');
+          return [];
+        }
         throw new Error(`Google Books API error: ${response.status}`);
       }
 
