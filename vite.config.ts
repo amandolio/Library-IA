@@ -22,7 +22,10 @@ export default defineConfig({
       '/api/arxiv': {
         target: 'https://export.arxiv.org',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/arxiv/, '')
+        rewrite: (path) => path.replace(/^\/api\/arxiv/, ''),
+        headers: {
+          'User-Agent': 'LibraryAI/1.0 (mailto:contact@libraryai.edu)'
+        }
       },
       '/api/semantic': {
         target: 'https://api.semanticscholar.org',
