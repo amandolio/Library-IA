@@ -7,4 +7,36 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  server: {
+    proxy: {
+      '/api/crossref': {
+        target: 'https://api.crossref.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/crossref/, ''),
+        headers: {
+          'User-Agent': 'LibraryAI/1.0 (mailto:contact@libraryai.edu)'
+        }
+      },
+      '/api/openlibrary': {
+        target: 'https://openlibrary.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/openlibrary/, '')
+      },
+      '/api/arxiv': {
+        target: 'https://export.arxiv.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/arxiv/, '')
+      },
+      '/api/semantic': {
+        target: 'https://api.semanticscholar.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/semantic/, '')
+      },
+      '/api/googlebooks': {
+        target: 'https://www.googleapis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/googlebooks/, '')
+      }
+    }
+  }
 });
