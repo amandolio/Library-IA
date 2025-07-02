@@ -167,6 +167,23 @@ export class AcademicAPIService {
     throw lastError!;
   }
 
+  // Función para determinar si un error es de red/temporal
+  private isNetworkError(error: Error): boolean {
+    const networkErrorPatterns = [
+      'socket hang up',
+      'ECONNRESET',
+      'ENOTFOUND',
+      'ETIMEDOUT',
+      'TimeoutError',
+      'Network request failed',
+      'Failed to fetch'
+    ];
+    
+    return networkErrorPatterns.some(pattern => 
+      error.message.includes(pattern) || error.name.includes(pattern)
+    );
+  }
+
   // Búsqueda en CrossRef (artículos académicos y DOIs)
   async searchCrossRef(query: string, limit: number = 20): Promise<Resource[]> {
     try {
@@ -209,17 +226,23 @@ export class AcademicAPIService {
 
       return this.transformCrossRefResults(data.message.items);
     } catch (error) {
-      console.error('Error searching CrossRef:', error);
+      const err = error as Error;
       
-      // Si es un error de timeout o conexión, devolver array vacío en lugar de fallar
-      if (error instanceof Error) {
-        if (error.name === 'TimeoutError' || error.message.includes('socket hang up')) {
-          console.warn('CrossRef: Timeout o conexión perdida. Saltando esta fuente por ahora.');
-          return [];
-        }
+      // Diferenciar entre errores de red/temporales y errores persistentes
+      if (this.isNetworkError(err)) {
+        console.warn('CrossRef: Conexión temporal no disponible (socket hang up, timeout, etc.). Saltando esta fuente por ahora.');
+        return [];
+      } else if (err.message.includes('CrossRef server error (500)')) {
+        console.warn('CrossRef: Servidor temporalmente no disponible (Error 500). Saltando esta fuente por ahora.');
+        return [];
+      } else if (err.message.includes('rate limit')) {
+        console.warn('CrossRef: Límite de velocidad alcanzado. Saltando esta fuente por ahora.');
+        return [];
+      } else {
+        // Solo registrar como error real si no es un problema temporal conocido
+        console.error('CrossRef: Error persistente en la API:', err.message);
+        return [];
       }
-      
-      return [];
     }
   }
 
