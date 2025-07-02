@@ -16,11 +16,11 @@ const API_CONFIG = {
   },
   semanticScholar: {
     baseUrl: 'https://api.semanticscholar.org/graph/v1',
-    apiKey: process.env.VITE_SEMANTIC_SCHOLAR_API_KEY || ''
+    apiKey: import.meta.env.VITE_SEMANTIC_SCHOLAR_API_KEY || ''
   },
   googleBooks: {
     baseUrl: 'https://www.googleapis.com/books/v1/volumes',
-    apiKey: process.env.VITE_GOOGLE_BOOKS_API_KEY || ''
+    apiKey: import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || ''
   }
 };
 
