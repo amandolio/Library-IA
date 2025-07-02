@@ -139,6 +139,34 @@ export class AcademicAPIService {
            !apiKey.includes('placeholder');
   }
 
+  // Función de reintento con backoff exponencial
+  private async retryWithBackoff<T>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> {
+    let lastError: Error;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error as Error;
+        
+        if (attempt === maxRetries) {
+          throw lastError;
+        }
+        
+        // Backoff exponencial: 1s, 2s, 4s
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.warn(`Intento ${attempt + 1} falló, reintentando en ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    throw lastError!;
+  }
+
   // Búsqueda en CrossRef (artículos académicos y DOIs)
   async searchCrossRef(query: string, limit: number = 20): Promise<Resource[]> {
     try {
@@ -147,16 +175,50 @@ export class AcademicAPIService {
       const encodedQuery = encodeURIComponent(query);
       const url = `${API_CONFIG.crossref.baseUrl}?query=${encodedQuery}&rows=${limit}&sort=relevance&order=desc`;
       
-      const response = await fetch(url);
+      // Usar retry con backoff para manejar errores temporales
+      const response = await this.retryWithBackoff(async () => {
+        const res = await fetch(url, {
+          headers: {
+            'User-Agent': API_CONFIG.crossref.userAgent,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          // Configurar timeout para evitar conexiones colgadas
+          signal: AbortSignal.timeout(30000) // 30 segundos
+        });
 
-      if (!response.ok) {
-        throw new Error(`CrossRef API error: ${response.status}`);
-      }
+        if (!res.ok) {
+          if (res.status === 500) {
+            throw new Error(`CrossRef server error (500). This may be temporary - retrying...`);
+          } else if (res.status === 429) {
+            throw new Error(`CrossRef rate limit exceeded (429). Waiting before retry...`);
+          } else {
+            throw new Error(`CrossRef API error: ${res.status} - ${res.statusText}`);
+          }
+        }
+
+        return res;
+      });
 
       const data = await response.json();
+      
+      if (!data.message || !data.message.items) {
+        console.warn('CrossRef: Respuesta inesperada de la API', data);
+        return [];
+      }
+
       return this.transformCrossRefResults(data.message.items);
     } catch (error) {
       console.error('Error searching CrossRef:', error);
+      
+      // Si es un error de timeout o conexión, devolver array vacío en lugar de fallar
+      if (error instanceof Error) {
+        if (error.name === 'TimeoutError' || error.message.includes('socket hang up')) {
+          console.warn('CrossRef: Timeout o conexión perdida. Saltando esta fuente por ahora.');
+          return [];
+        }
+      }
+      
       return [];
     }
   }
@@ -169,7 +231,13 @@ export class AcademicAPIService {
       const encodedQuery = encodeURIComponent(query);
       const url = `${API_CONFIG.openLibrary.searchUrl}?q=${encodedQuery}&limit=${limit}&fields=key,title,author_name,first_publish_year,publisher,isbn,subject,language,cover_i,edition_count`;
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': API_CONFIG.crossref.userAgent,
+          'Accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(30000)
+      });
       
       if (!response.ok) {
         throw new Error(`Open Library API error: ${response.status}`);
@@ -191,7 +259,13 @@ export class AcademicAPIService {
       const encodedQuery = encodeURIComponent(query);
       const url = `${API_CONFIG.arxiv.baseUrl}?search_query=all:${encodedQuery}&start=0&max_results=${limit}&sortBy=relevance&sortOrder=descending`;
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': API_CONFIG.crossref.userAgent,
+          'Accept': 'application/atom+xml'
+        },
+        signal: AbortSignal.timeout(30000)
+      });
       
       if (!response.ok) {
         throw new Error(`arXiv API error: ${response.status}`);
@@ -223,10 +297,14 @@ export class AcademicAPIService {
       
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
+        'User-Agent': API_CONFIG.crossref.userAgent,
         'x-api-key': apiKey
       };
       
-      const response = await fetch(url, { headers });
+      const response = await fetch(url, { 
+        headers,
+        signal: AbortSignal.timeout(30000)
+      });
       
       if (!response.ok) {
         if (response.status === 429) {
@@ -259,7 +337,13 @@ export class AcademicAPIService {
         console.info('Google Books: Usando API sin key (límites más restrictivos)');
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': API_CONFIG.crossref.userAgent,
+          'Accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(30000)
+      });
       
       if (!response.ok) {
         if (response.status === 429) {
