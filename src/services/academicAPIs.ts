@@ -1,25 +1,25 @@
 // Servicios para integración con APIs académicas
 import { Resource, LibrarySystemInfo } from '../types';
 
-// Configuración de APIs
+// Configuración de APIs usando proxy routes para evitar CORS
 const API_CONFIG = {
   crossref: {
-    baseUrl: 'https://api.crossref.org/works',
+    baseUrl: '/api/crossref/works',
     userAgent: 'LibraryAI/1.0 (mailto:contact@libraryai.edu)'
   },
   openLibrary: {
-    baseUrl: 'https://openlibrary.org',
-    searchUrl: 'https://openlibrary.org/search.json'
+    baseUrl: '/api/openlibrary',
+    searchUrl: '/api/openlibrary/search.json'
   },
   arxiv: {
-    baseUrl: 'https://export.arxiv.org/api/query'
+    baseUrl: '/api/arxiv/api/query'
   },
   semanticScholar: {
-    baseUrl: 'https://api.semanticscholar.org/graph/v1',
+    baseUrl: '/api/semantic/graph/v1',
     apiKey: import.meta.env.VITE_SEMANTIC_SCHOLAR_API_KEY || ''
   },
   googleBooks: {
-    baseUrl: 'https://www.googleapis.com/books/v1/volumes',
+    baseUrl: '/api/googlebooks/books/v1/volumes',
     apiKey: import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || ''
   }
 };
@@ -147,11 +147,7 @@ export class AcademicAPIService {
       const encodedQuery = encodeURIComponent(query);
       const url = `${API_CONFIG.crossref.baseUrl}?query=${encodedQuery}&rows=${limit}&sort=relevance&order=desc`;
       
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': API_CONFIG.crossref.userAgent
-        }
-      });
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`CrossRef API error: ${response.status}`);

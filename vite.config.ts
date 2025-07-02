@@ -1,12 +1,9 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  optimizeDeps: {
-    exclude: ['lucide-react'],
-  },
   server: {
     proxy: {
       '/api/crossref': {
@@ -25,10 +22,7 @@ export default defineConfig({
       '/api/arxiv': {
         target: 'https://export.arxiv.org',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/arxiv/, ''),
-        headers: {
-          'User-Agent': 'LibraryAI/1.0 (mailto:contact@libraryai.edu)'
-        }
+        rewrite: (path) => path.replace(/^\/api\/arxiv/, '')
       },
       '/api/semantic': {
         target: 'https://api.semanticscholar.org',
@@ -42,4 +36,4 @@ export default defineConfig({
       }
     }
   }
-});
+})
