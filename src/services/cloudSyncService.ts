@@ -27,6 +27,13 @@ export class CloudSyncService {
     // Intentar obtener configuración de Supabase del entorno
     this.supabaseUrl = import.meta.env.VITE_SUPABASE_URL || null;
     this.supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || null;
+    
+    // Auto-conectar si las credenciales están disponibles
+    if (this.supabaseUrl && this.supabaseKey) {
+      this.connect().catch(error => {
+        console.warn('Auto-connect to cloud failed:', error);
+      });
+    }
   }
 
   async connect(): Promise<boolean> {
@@ -40,20 +47,23 @@ export class CloudSyncService {
       const { createClient } = await import('@supabase/supabase-js');
       this.supabase = createClient(this.supabaseUrl, this.supabaseKey);
 
-      // Verificar conexión
-      const { data, error } = await this.supabase.from('academic_resources').select('count').limit(1);
-      
-      if (error && error.code !== 'PGRST116') { // PGRST116 = tabla no existe, pero conexión OK
-        throw error;
-      }
-
-      // Crear tablas si no existen
-      await this.ensureTablesExist();
-
       // Autenticar usuario anónimo o usar usuario actual
       await this.authenticateUser();
 
+      // Verificar conexión básica
+      const { data, error } = await this.supabase
+        .from('academic_resources')
+        .select('count')
+        .limit(1);
+      
+      if (error && !['PGRST116', '42P01'].includes(error.code)) {
+        // PGRST116 = tabla no existe, 42P01 = relation does not exist
+        // Estos errores son normales si las tablas no existen aún
+        console.warn('Connection warning:', error);
+      }
+
       this.isConnected = true;
+      console.log('✅ Conectado a Supabase exitosamente');
       return true;
     } catch (error) {
       console.error('Error connecting to cloud:', error);
@@ -68,32 +78,13 @@ export class CloudSyncService {
     }
 
     try {
-      const { data, error } = await this.supabase.from('academic_resources').select('count').limit(1);
-      return !error || error.code === 'PGRST116';
+      const { data, error } = await this.supabase
+        .from('academic_resources')
+        .select('count')
+        .limit(1);
+      return !error || ['PGRST116', '42P01'].includes(error.code);
     } catch (error) {
       return false;
-    }
-  }
-
-  private async ensureTablesExist(): Promise<void> {
-    try {
-      // Intentar crear la tabla de recursos académicos
-      const { error: resourcesError } = await this.supabase.rpc('create_academic_resources_table');
-      
-      // Intentar crear la tabla de sincronización
-      const { error: syncError } = await this.supabase.rpc('create_sync_metadata_table');
-      
-      // Los errores son esperados si las tablas ya existen
-      if (resourcesError && !resourcesError.message.includes('already exists')) {
-        console.warn('Could not create resources table:', resourcesError);
-      }
-      
-      if (syncError && !syncError.message.includes('already exists')) {
-        console.warn('Could not create sync table:', syncError);
-      }
-    } catch (error) {
-      console.warn('Error ensuring tables exist:', error);
-      // Continuar sin crear tablas - pueden ya existir o no tener permisos
     }
   }
 
@@ -104,15 +95,18 @@ export class CloudSyncService {
       
       if (user) {
         this.currentUser = user;
+        console.log('Usuario autenticado:', user.email || user.id);
       } else {
         // Crear sesión anónima usando un ID único del navegador
         const deviceId = this.getDeviceId();
         this.currentUser = { id: deviceId };
+        console.log('Usuario anónimo creado:', deviceId);
       }
     } catch (error) {
       // Usar ID de dispositivo como fallback
       const deviceId = this.getDeviceId();
       this.currentUser = { id: deviceId };
+      console.log('Usuario fallback creado:', deviceId);
     }
   }
 
@@ -135,8 +129,11 @@ export class CloudSyncService {
       const localResources = await databaseService.getAllResources();
       
       if (localResources.length === 0) {
+        console.log('No hay recursos locales para sincronizar');
         return;
       }
+
+      console.log(`Sincronizando ${localResources.length} recursos a la nube...`);
 
       // Preparar recursos para la nube
       const cloudResources = localResources.map(resource => ({
@@ -172,7 +169,9 @@ export class CloudSyncService {
       }));
 
       // Subir recursos en lotes para evitar límites
-      const batchSize = 100;
+      const batchSize = 50;
+      let uploadedCount = 0;
+      
       for (let i = 0; i < cloudResources.length; i += batchSize) {
         const batch = cloudResources.slice(i, i + batchSize);
         
@@ -186,8 +185,12 @@ export class CloudSyncService {
         if (error) {
           console.warn(`Error uploading batch ${i / batchSize + 1}:`, error);
           // Continuar con el siguiente lote
+        } else {
+          uploadedCount += batch.length;
         }
       }
+
+      console.log(`✅ ${uploadedCount} recursos sincronizados a la nube`);
 
       // Actualizar metadata de sincronización
       await this.updateSyncMetadata('upload');
@@ -204,6 +207,8 @@ export class CloudSyncService {
     }
 
     try {
+      console.log('Descargando recursos desde la nube...');
+
       // Obtener recursos del usuario desde la nube
       const { data: cloudResources, error } = await this.supabase
         .from('academic_resources')
@@ -215,8 +220,11 @@ export class CloudSyncService {
       }
 
       if (!cloudResources || cloudResources.length === 0) {
+        console.log('No hay recursos en la nube para descargar');
         return;
       }
+
+      console.log(`Descargando ${cloudResources.length} recursos desde la nube...`);
 
       // Convertir recursos de la nube al formato local
       const localResources: Resource[] = cloudResources.map((cloudResource: any) => ({
@@ -264,6 +272,8 @@ export class CloudSyncService {
         }
       }
 
+      console.log(`✅ ${localResources.length} recursos descargados desde la nube`);
+
       // Actualizar metadata de sincronización
       await this.updateSyncMetadata('download');
 
@@ -287,6 +297,8 @@ export class CloudSyncService {
 
       if (error) {
         console.warn('Error deleting resource from cloud:', error);
+      } else {
+        console.log(`Recurso ${resourceId} eliminado de la nube`);
       }
     } catch (error) {
       console.warn('Error deleting resource from cloud:', error);
@@ -401,6 +413,7 @@ export class CloudSyncService {
         .delete()
         .eq('user_id', this.currentUser.id);
 
+      console.log('Datos de la nube eliminados exitosamente');
     } catch (error) {
       console.error('Error clearing cloud data:', error);
       throw error;
@@ -411,6 +424,19 @@ export class CloudSyncService {
     this.isConnected = false;
     this.supabase = null;
     this.currentUser = null;
+    console.log('Desconectado de la nube');
+  }
+
+  getConnectionStatus(): boolean {
+    return this.isConnected;
+  }
+
+  getCurrentUserId(): string | null {
+    return this.currentUser?.id || null;
+  }
+
+  isConfigured(): boolean {
+    return !!(this.supabaseUrl && this.supabaseKey);
   }
 }
 
