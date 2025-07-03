@@ -17,7 +17,12 @@ import {
   Settings,
   Zap,
   TrendingUp,
-  Activity
+  Activity,
+  Archive,
+  Trash2,
+  Eye,
+  Calendar,
+  Tag
 } from 'lucide-react';
 import { Resource } from '../types';
 import { ResourceCard } from './ResourceCard';
@@ -42,12 +47,22 @@ export function AcademicSearchPanel() {
   const [savedCount, setSavedCount] = useState(0);
   const [dbStats, setDbStats] = useState<any>(null);
   const [searchHistory, setSearchHistory] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'search' | 'database' | 'history'>('search');
+  const [savedResources, setSavedResources] = useState<Resource[]>([]);
+  const [activeTab, setActiveTab] = useState<'search' | 'database' | 'history' | 'saved'>('search');
+  const [savedResourcesFilter, setSavedResourcesFilter] = useState({
+    source: 'all',
+    type: 'all',
+    searchTerm: ''
+  });
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
 
   useEffect(() => {
     initializeDatabase();
     loadSearchHistory();
-  }, []);
+    if (activeTab === 'saved') {
+      loadSavedResources();
+    }
+  }, [activeTab]);
 
   const initializeDatabase = async () => {
     try {
@@ -65,6 +80,74 @@ export function AcademicSearchPanel() {
       setSearchHistory(history);
     } catch (error) {
       console.error('Error loading search history:', error);
+    }
+  };
+
+  const loadSavedResources = async () => {
+    setIsLoadingSaved(true);
+    try {
+      let resources = await databaseService.getAllResources();
+      
+      // Aplicar filtros
+      if (savedResourcesFilter.source !== 'all') {
+        resources = await databaseService.getResourcesBySource(savedResourcesFilter.source);
+      }
+      
+      if (savedResourcesFilter.type !== 'all') {
+        resources = resources.filter(r => r.type === savedResourcesFilter.type);
+      }
+      
+      if (savedResourcesFilter.searchTerm) {
+        const searchTerm = savedResourcesFilter.searchTerm.toLowerCase();
+        resources = resources.filter(r => 
+          r.title.toLowerCase().includes(searchTerm) ||
+          r.authors.some(author => author.toLowerCase().includes(searchTerm)) ||
+          r.abstract.toLowerCase().includes(searchTerm) ||
+          r.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        );
+      }
+      
+      setSavedResources(resources);
+    } catch (error) {
+      console.error('Error loading saved resources:', error);
+    } finally {
+      setIsLoadingSaved(false);
+    }
+  };
+
+  const handleDeleteResource = async (resourceId: string) => {
+    if (confirm('¿Estás seguro de que deseas eliminar este recurso de la base de datos?')) {
+      try {
+        await databaseService.deleteResource(resourceId);
+        await loadSavedResources();
+        
+        // Actualizar estadísticas
+        const stats = await databaseService.getStats();
+        setDbStats(stats);
+        
+        alert('Recurso eliminado exitosamente');
+      } catch (error) {
+        console.error('Error deleting resource:', error);
+        alert('Error al eliminar el recurso');
+      }
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      const data = await databaseService.exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `libraryai-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      alert('Error al exportar los datos');
     }
   };
 
@@ -91,7 +174,7 @@ export function AcademicSearchPanel() {
       description: 'Preprints científicos',
       icon: Brain,
       color: 'red',
-      enabled: false // Deshabilitado por defecto debido a limitaciones de CORS
+      enabled: false
     },
     {
       id: 'semanticScholar',
@@ -195,6 +278,16 @@ export function AcademicSearchPanel() {
     'cybersecurity frameworks'
   ];
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -226,6 +319,19 @@ export function AcademicSearchPanel() {
               </div>
             </button>
             <button
+              onClick={() => setActiveTab('saved')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'saved'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Archive className="h-4 w-4" />
+                <span>Recursos Guardados ({dbStats?.totalResources || 0})</span>
+              </div>
+            </button>
+            <button
               onClick={() => setActiveTab('database')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'database'
@@ -235,7 +341,7 @@ export function AcademicSearchPanel() {
             >
               <div className="flex items-center space-x-2">
                 <Database className="h-4 w-4" />
-                <span>Base de Datos ({dbStats?.totalResources || 0})</span>
+                <span>Estadísticas BD</span>
               </div>
             </button>
             <button
@@ -483,6 +589,164 @@ export function AcademicSearchPanel() {
                 </div>
               )}
             </>
+          )}
+
+          {activeTab === 'saved' && (
+            <div className="space-y-6">
+              {/* Filters and Actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={savedResourcesFilter.searchTerm}
+                      onChange={(e) => {
+                        setSavedResourcesFilter(prev => ({ ...prev, searchTerm: e.target.value }));
+                        // Recargar recursos con filtro aplicado
+                        setTimeout(loadSavedResources, 300);
+                      }}
+                      placeholder="Buscar en recursos guardados..."
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 w-64"
+                    />
+                  </div>
+                  
+                  <select
+                    value={savedResourcesFilter.source}
+                    onChange={(e) => {
+                      setSavedResourcesFilter(prev => ({ ...prev, source: e.target.value }));
+                      loadSavedResources();
+                    }}
+                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="all">Todas las fuentes</option>
+                    {sources.map(source => (
+                      <option key={source.id} value={source.id}>{source.name}</option>
+                    ))}
+                  </select>
+                  
+                  <select
+                    value={savedResourcesFilter.type}
+                    onChange={(e) => {
+                      setSavedResourcesFilter(prev => ({ ...prev, type: e.target.value }));
+                      loadSavedResources();
+                    }}
+                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="all">Todos los tipos</option>
+                    <option value="book">Libros</option>
+                    <option value="journal">Artículos</option>
+                    <option value="thesis">Tesis</option>
+                    <option value="conference">Conferencias</option>
+                    <option value="dataset">Datasets</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={loadSavedResources}
+                    disabled={isLoadingSaved}
+                    className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoadingSaved ? 'animate-spin' : ''}`} />
+                    <span>Actualizar</span>
+                  </button>
+                  
+                  <button
+                    onClick={handleExportData}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Exportar</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Saved Resources List */}
+              {isLoadingSaved ? (
+                <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Cargando recursos guardados...</h3>
+                </div>
+              ) : savedResources.length > 0 ? (
+                <div className="space-y-4">
+                  {savedResources.map((resource, index) => (
+                    <div key={resource.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <ResourceCard resource={resource} />
+                          
+                          {/* Metadata adicional */}
+                          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                              <div className="flex items-center space-x-2">
+                                <Database className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-600">Fuente:</span>
+                                <span className="font-semibold text-gray-900 capitalize">
+                                  {(resource as any).source || 'Desconocida'}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-600">Guardado:</span>
+                                <span className="font-semibold text-gray-900">
+                                  {(resource as any).dateAdded ? formatDate((resource as any).dateAdded) : 'N/A'}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                <Tag className="h-4 w-4 text-gray-500" />
+                                <span className="text-gray-600">Tipo:</span>
+                                <span className="font-semibold text-gray-900 capitalize">
+                                  {resource.type}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 ml-4">
+                          {resource.digitalUrl && (
+                            <a
+                              href={resource.digitalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Ver recurso"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </a>
+                          )}
+                          
+                          <button
+                            onClick={() => handleDeleteResource(resource.id)}
+                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Eliminar recurso"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
+                  <Archive className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No hay recursos guardados</h3>
+                  <p className="text-gray-600 mb-4">
+                    Los recursos que guardes desde las búsquedas académicas aparecerán aquí.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('search')}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Ir a Búsqueda
+                  </button>
+                </div>
+              )}
+            </div>
           )}
 
           {activeTab === 'database' && (
