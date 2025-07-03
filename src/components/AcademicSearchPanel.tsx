@@ -22,12 +22,17 @@ import {
   Trash2,
   Eye,
   Calendar,
-  Tag
+  Tag,
+  Cloud,
+  CloudOff,
+  Upload,
+  Sync
 } from 'lucide-react';
 import { Resource } from '../types';
 import { ResourceCard } from './ResourceCard';
 import { academicAPI } from '../services/academicAPIs';
 import { databaseService } from '../services/databaseService';
+import { cloudSyncService } from '../services/cloudSyncService';
 
 export function AcademicSearchPanel() {
   const [query, setQuery] = useState('');
@@ -55,10 +60,14 @@ export function AcademicSearchPanel() {
     searchTerm: ''
   });
   const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<'connected' | 'disconnected' | 'syncing' | 'error'>('disconnected');
+  const [lastCloudSync, setLastCloudSync] = useState<Date | null>(null);
+  const [cloudStats, setCloudStats] = useState<any>(null);
 
   useEffect(() => {
     initializeDatabase();
     loadSearchHistory();
+    initializeCloudSync();
     if (activeTab === 'saved') {
       loadSavedResources();
     }
@@ -71,6 +80,73 @@ export function AcademicSearchPanel() {
       setDbStats(stats);
     } catch (error) {
       console.error('Error initializing database:', error);
+    }
+  };
+
+  const initializeCloudSync = async () => {
+    try {
+      const isConnected = await cloudSyncService.checkConnection();
+      if (isConnected) {
+        setCloudSyncStatus('connected');
+        const lastSync = await cloudSyncService.getLastSyncTime();
+        setLastCloudSync(lastSync);
+        const stats = await cloudSyncService.getCloudStats();
+        setCloudStats(stats);
+      } else {
+        setCloudSyncStatus('disconnected');
+      }
+    } catch (error) {
+      console.error('Error initializing cloud sync:', error);
+      setCloudSyncStatus('error');
+    }
+  };
+
+  const handleCloudSync = async () => {
+    if (cloudSyncStatus === 'syncing') return;
+    
+    setCloudSyncStatus('syncing');
+    try {
+      // Sincronizar datos locales con la nube
+      await cloudSyncService.syncToCloud();
+      
+      // Descargar datos de la nube y fusionar con datos locales
+      await cloudSyncService.syncFromCloud();
+      
+      // Actualizar estadísticas locales
+      const stats = await databaseService.getStats();
+      setDbStats(stats);
+      
+      // Actualizar estadísticas de la nube
+      const cloudStats = await cloudSyncService.getCloudStats();
+      setCloudStats(cloudStats);
+      
+      setLastCloudSync(new Date());
+      setCloudSyncStatus('connected');
+      
+      // Recargar recursos guardados si estamos en esa pestaña
+      if (activeTab === 'saved') {
+        await loadSavedResources();
+      }
+      
+      alert('✅ Sincronización completada exitosamente');
+    } catch (error) {
+      console.error('Error during cloud sync:', error);
+      setCloudSyncStatus('error');
+      alert('❌ Error durante la sincronización: ' + (error as Error).message);
+    }
+  };
+
+  const handleConnectToCloud = async () => {
+    try {
+      const connected = await cloudSyncService.connect();
+      if (connected) {
+        setCloudSyncStatus('connected');
+        await handleCloudSync(); // Sincronizar inmediatamente después de conectar
+      }
+    } catch (error) {
+      console.error('Error connecting to cloud:', error);
+      setCloudSyncStatus('error');
+      alert('Error al conectar con la nube: ' + (error as Error).message);
     }
   };
 
@@ -119,6 +195,12 @@ export function AcademicSearchPanel() {
     if (confirm('¿Estás seguro de que deseas eliminar este recurso de la base de datos?')) {
       try {
         await databaseService.deleteResource(resourceId);
+        
+        // Si estamos conectados a la nube, también eliminar de allí
+        if (cloudSyncStatus === 'connected') {
+          await cloudSyncService.deleteResourceFromCloud(resourceId);
+        }
+        
         await loadSavedResources();
         
         // Actualizar estadísticas
@@ -235,11 +317,21 @@ export function AcademicSearchPanel() {
         }
       }
       
+      // Si estamos conectados a la nube, sincronizar automáticamente
+      if (cloudSyncStatus === 'connected') {
+        try {
+          await cloudSyncService.syncToCloud();
+          setLastCloudSync(new Date());
+        } catch (error) {
+          console.warn('Error syncing to cloud:', error);
+        }
+      }
+      
       // Actualizar estadísticas
       const stats = await databaseService.getStats();
       setDbStats(stats);
       
-      alert(`✅ Se guardaron ${totalSaved} recursos en la base de datos`);
+      alert(`✅ Se guardaron ${totalSaved} recursos en la base de datos${cloudSyncStatus === 'connected' ? ' y se sincronizaron con la nube' : ''}`);
       
     } catch (error) {
       console.error('Error guardando resultados:', error);
@@ -288,6 +380,24 @@ export function AcademicSearchPanel() {
     });
   };
 
+  const getCloudSyncIcon = () => {
+    switch (cloudSyncStatus) {
+      case 'connected': return <Cloud className="h-4 w-4 text-green-600" />;
+      case 'syncing': return <Sync className="h-4 w-4 text-blue-600 animate-spin" />;
+      case 'error': return <CloudOff className="h-4 w-4 text-red-600" />;
+      default: return <CloudOff className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getCloudSyncLabel = () => {
+    switch (cloudSyncStatus) {
+      case 'connected': return 'Conectado a la nube';
+      case 'syncing': return 'Sincronizando...';
+      case 'error': return 'Error de conexión';
+      default: return 'Sin conexión a la nube';
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -296,9 +406,46 @@ export function AcademicSearchPanel() {
           <Database className="h-8 w-8" />
           <h2 className="text-3xl font-bold">Búsqueda Académica Avanzada</h2>
         </div>
-        <p className="text-indigo-100 text-lg">
-          Conecta con fuentes académicas confiables y guarda recursos en tu base de datos local
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-indigo-100 text-lg">
+            Conecta con fuentes académicas confiables y sincroniza tus recursos en la nube
+          </p>
+          
+          {/* Cloud Sync Status */}
+          <div className="bg-white/10 rounded-lg p-4 min-w-[250px]">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                {getCloudSyncIcon()}
+                <span className="text-sm font-medium">{getCloudSyncLabel()}</span>
+              </div>
+              {cloudSyncStatus === 'disconnected' ? (
+                <button
+                  onClick={handleConnectToCloud}
+                  className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs transition-colors"
+                >
+                  Conectar
+                </button>
+              ) : cloudSyncStatus === 'connected' ? (
+                <button
+                  onClick={handleCloudSync}
+                  className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs transition-colors"
+                >
+                  Sincronizar
+                </button>
+              ) : null}
+            </div>
+            {lastCloudSync && (
+              <div className="text-xs opacity-75">
+                Última sync: {lastCloudSync.toLocaleTimeString()}
+              </div>
+            )}
+            {cloudStats && (
+              <div className="text-xs opacity-75 mt-1">
+                En la nube: {cloudStats.totalResources} recursos
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -329,6 +476,9 @@ export function AcademicSearchPanel() {
               <div className="flex items-center space-x-2">
                 <Archive className="h-4 w-4" />
                 <span>Recursos Guardados ({dbStats?.totalResources || 0})</span>
+                {cloudSyncStatus === 'connected' && (
+                  <Cloud className="h-3 w-3 text-green-600" />
+                )}
               </div>
             </button>
             <button
@@ -500,23 +650,31 @@ export function AcademicSearchPanel() {
                         Resultados de Búsqueda Académica
                       </h3>
                       {searchResults.combined.length > 0 && (
-                        <button
-                          onClick={handleSaveResults}
-                          disabled={isSaving}
-                          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-                        >
-                          {isSaving ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>Guardando... ({savedCount})</span>
-                            </>
-                          ) : (
-                            <>
-                              <Download className="h-4 w-4" />
-                              <span>Guardar en BD</span>
-                            </>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={handleSaveResults}
+                            disabled={isSaving}
+                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                          >
+                            {isSaving ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <span>Guardando... ({savedCount})</span>
+                              </>
+                            ) : (
+                              <>
+                                <Download className="h-4 w-4" />
+                                <span>Guardar en BD</span>
+                              </>
+                            )}
+                          </button>
+                          {cloudSyncStatus === 'connected' && (
+                            <div className="flex items-center space-x-1 text-xs text-green-600">
+                              <Cloud className="h-3 w-3" />
+                              <span>Se sincronizará automáticamente</span>
+                            </div>
                           )}
-                        </button>
+                        </div>
                       )}
                     </div>
                     
@@ -652,6 +810,21 @@ export function AcademicSearchPanel() {
                     <span>Actualizar</span>
                   </button>
                   
+                  {cloudSyncStatus === 'connected' && (
+                    <button
+                      onClick={handleCloudSync}
+                      disabled={cloudSyncStatus === 'syncing'}
+                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    >
+                      {cloudSyncStatus === 'syncing' ? (
+                        <Sync className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Cloud className="h-4 w-4" />
+                      )}
+                      <span>Sincronizar</span>
+                    </button>
+                  )}
+                  
                   <button
                     onClick={handleExportData}
                     className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -661,6 +834,35 @@ export function AcademicSearchPanel() {
                   </button>
                 </div>
               </div>
+
+              {/* Cloud Sync Info */}
+              {cloudSyncStatus === 'connected' && cloudStats && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Cloud className="h-5 w-5 text-blue-600" />
+                    <h4 className="font-semibold text-blue-900">Sincronización en la Nube Activa</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-blue-700">Recursos locales:</span>
+                      <span className="font-semibold text-blue-900 ml-2">{dbStats?.totalResources || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-blue-700">Recursos en la nube:</span>
+                      <span className="font-semibold text-blue-900 ml-2">{cloudStats.totalResources}</span>
+                    </div>
+                    <div>
+                      <span className="text-blue-700">Última sincronización:</span>
+                      <span className="font-semibold text-blue-900 ml-2">
+                        {lastCloudSync ? lastCloudSync.toLocaleString() : 'Nunca'}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-2">
+                    Tus recursos se sincronizan automáticamente entre dispositivos y navegadores.
+                  </p>
+                </div>
+              )}
 
               {/* Saved Resources List */}
               {isLoadingSaved ? (
@@ -738,6 +940,19 @@ export function AcademicSearchPanel() {
                   <p className="text-gray-600 mb-4">
                     Los recursos que guardes desde las búsquedas académicas aparecerán aquí.
                   </p>
+                  {cloudSyncStatus === 'disconnected' && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800 text-sm mb-2">
+                        💡 <strong>Consejo:</strong> Conecta a la nube para sincronizar tus recursos entre dispositivos
+                      </p>
+                      <button
+                        onClick={handleConnectToCloud}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      >
+                        Conectar a la Nube
+                      </button>
+                    </div>
+                  )}
                   <button
                     onClick={() => setActiveTab('search')}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -791,6 +1006,37 @@ export function AcademicSearchPanel() {
                         <p className="text-2xl font-bold text-orange-900">{Object.keys(dbStats.byLanguage).length}</p>
                       </div>
                       <Globe className="h-8 w-8 text-orange-600" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Cloud Sync Stats */}
+              {cloudSyncStatus === 'connected' && cloudStats && (
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <Cloud className="h-5 w-5 mr-2 text-blue-600" />
+                    Estadísticas de la Nube
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <Upload className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-blue-600">{cloudStats.totalResources}</p>
+                      <p className="text-sm text-gray-600">Recursos en la nube</p>
+                    </div>
+                    
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <Sync className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-green-600">{cloudStats.syncCount || 0}</p>
+                      <p className="text-sm text-gray-600">Sincronizaciones realizadas</p>
+                    </div>
+                    
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <Clock className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-purple-600">
+                        {lastCloudSync ? lastCloudSync.toLocaleDateString() : 'N/A'}
+                      </p>
+                      <p className="text-sm text-gray-600">Última sincronización</p>
                     </div>
                   </div>
                 </div>
@@ -884,11 +1130,11 @@ export function AcademicSearchPanel() {
         <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
           <Database className="h-16 w-16 text-indigo-600 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Búsqueda Académica Avanzada
+            Búsqueda Académica Avanzada con Sincronización en la Nube
           </h3>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
             Conecta con fuentes académicas confiables como CrossRef, Open Library, Semantic Scholar y Google Books. 
-            Los resultados se guardan automáticamente en tu base de datos local.
+            Los resultados se guardan automáticamente y se sincronizan en la nube para acceso desde cualquier dispositivo.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
             <div className="p-4 bg-blue-50 rounded-lg">
@@ -906,12 +1152,30 @@ export function AcademicSearchPanel() {
               <h4 className="font-semibold text-gray-900 mb-1">Semantic Scholar</h4>
               <p className="text-sm text-gray-600">Papers de CS y medicina</p>
             </div>
-            <div className="p-4 bg-yellow-50 rounded-lg">
-              <Globe className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-              <h4 className="font-semibold text-gray-900 mb-1">Google Books</h4>
-              <p className="text-sm text-gray-600">Libros y publicaciones</p>
+            <div className="p-4 bg-orange-50 rounded-lg">
+              <Cloud className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+              <h4 className="font-semibold text-gray-900 mb-1">Sincronización</h4>
+              <p className="text-sm text-gray-600">Acceso desde cualquier dispositivo</p>
             </div>
           </div>
+          
+          {cloudSyncStatus === 'disconnected' && (
+            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
+              <div className="flex items-center space-x-2 mb-2">
+                <CloudOff className="h-5 w-5 text-blue-600" />
+                <h4 className="font-semibold text-blue-900">Conecta a la Nube</h4>
+              </div>
+              <p className="text-blue-800 text-sm mb-3">
+                Sincroniza tus recursos entre navegadores y dispositivos
+              </p>
+              <button
+                onClick={handleConnectToCloud}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Conectar Ahora
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
