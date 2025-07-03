@@ -96,6 +96,22 @@ export class DatabaseService {
     });
   }
 
+  async deleteResource(id: string): Promise<boolean> {
+    if (!this.db) await this.init();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['resources'], 'readwrite');
+      const store = transaction.objectStore('resources');
+      const request = store.delete(id);
+
+      request.onsuccess = () => {
+        this.updateStats();
+        resolve(true);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async searchResources(query: string, filters?: {
     type?: string;
     category?: string;
@@ -159,7 +175,15 @@ export class DatabaseService {
       const store = transaction.objectStore('resources');
       const request = store.getAll();
 
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        // Ordenar por fecha de agregado (más recientes primero)
+        const results = request.result.sort((a: any, b: any) => {
+          const dateA = new Date(a.dateAdded || 0).getTime();
+          const dateB = new Date(b.dateAdded || 0).getTime();
+          return dateB - dateA;
+        });
+        resolve(results);
+      };
       request.onerror = () => reject(request.error);
     });
   }
@@ -174,6 +198,12 @@ export class DatabaseService {
 
       request.onsuccess = () => {
         const results = request.result.filter((r: any) => r.source === source);
+        // Ordenar por fecha de agregado (más recientes primero)
+        results.sort((a: any, b: any) => {
+          const dateA = new Date(a.dateAdded || 0).getTime();
+          const dateB = new Date(b.dateAdded || 0).getTime();
+          return dateB - dateA;
+        });
         resolve(results);
       };
       request.onerror = () => reject(request.error);
@@ -312,6 +342,8 @@ export class DatabaseService {
     resources: Resource[];
     searches: any[];
     stats: DatabaseStats;
+    exportDate: string;
+    version: string;
   }> {
     const [resources, searches, stats] = await Promise.all([
       this.getAllResources(),
@@ -319,7 +351,110 @@ export class DatabaseService {
       this.getStats()
     ]);
     
-    return { resources, searches, stats };
+    return { 
+      resources, 
+      searches, 
+      stats,
+      exportDate: new Date().toISOString(),
+      version: '1.0'
+    };
+  }
+
+  async importData(data: {
+    resources: Resource[];
+    searches?: any[];
+    stats?: DatabaseStats;
+  }): Promise<void> {
+    if (!this.db) await this.init();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['resources', 'searches'], 'readwrite');
+      
+      transaction.oncomplete = () => {
+        this.updateStats();
+        resolve();
+      };
+      transaction.onerror = () => reject(transaction.error);
+      
+      const resourceStore = transaction.objectStore('resources');
+      const searchStore = transaction.objectStore('searches');
+      
+      // Importar recursos
+      data.resources.forEach(resource => {
+        const resourceWithMetadata = {
+          ...resource,
+          dateAdded: (resource as any).dateAdded || new Date().toISOString(),
+          lastUpdated: new Date().toISOString()
+        };
+        resourceStore.put(resourceWithMetadata);
+      });
+      
+      // Importar búsquedas si están disponibles
+      if (data.searches) {
+        data.searches.forEach(search => {
+          searchStore.put(search);
+        });
+      }
+    });
+  }
+
+  // Método para obtener recursos por rango de fechas
+  async getResourcesByDateRange(startDate: Date, endDate: Date): Promise<Resource[]> {
+    const allResources = await this.getAllResources();
+    
+    return allResources.filter(resource => {
+      const dateAdded = new Date((resource as any).dateAdded || 0);
+      return dateAdded >= startDate && dateAdded <= endDate;
+    });
+  }
+
+  // Método para obtener estadísticas de uso
+  async getUsageStats(): Promise<{
+    totalSearches: number;
+    totalResources: number;
+    resourcesThisWeek: number;
+    resourcesThisMonth: number;
+    topSources: Array<{ source: string; count: number }>;
+    topTypes: Array<{ type: string; count: number }>;
+  }> {
+    const [searches, resources, stats] = await Promise.all([
+      this.getSearchHistory(1000),
+      this.getAllResources(),
+      this.getStats()
+    ]);
+    
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    const resourcesThisWeek = resources.filter(r => {
+      const dateAdded = new Date((r as any).dateAdded || 0);
+      return dateAdded >= oneWeekAgo;
+    }).length;
+    
+    const resourcesThisMonth = resources.filter(r => {
+      const dateAdded = new Date((r as any).dateAdded || 0);
+      return dateAdded >= oneMonthAgo;
+    }).length;
+    
+    const topSources = Object.entries(stats.bySource)
+      .map(([source, count]) => ({ source, count: count as number }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+    
+    const topTypes = Object.entries(stats.byType)
+      .map(([type, count]) => ({ type, count: count as number }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+    
+    return {
+      totalSearches: searches.length,
+      totalResources: resources.length,
+      resourcesThisWeek,
+      resourcesThisMonth,
+      topSources,
+      topTypes
+    };
   }
 }
 
