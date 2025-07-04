@@ -35,7 +35,7 @@ const SIMULATED_ACADEMIC_DATABASE: Record<string, Resource[]> = {
         reservedCopies: 1,
         checkedOutCopies: 1,
         digitalAccess: true,
-        digitalLicenses: 10,
+        digitalLicenses: 100,
         digitalActiveUsers: 3
       },
       fullTextKeywords: ['machine', 'learning', 'pattern', 'recognition', 'bayesian', 'inference', 'algorithms']
