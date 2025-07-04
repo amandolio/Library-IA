@@ -30,12 +30,15 @@ import {
   Cloud,
   HardDrive,
   Wifi,
-  WifiOff
+  WifiOff,
+  Lightbulb,
+  Tag
 } from 'lucide-react';
 import { Resource } from '../types';
 import { academicAPI } from '../services/academicAPIs';
 import { databaseService } from '../services/databaseService';
 import { cloudSyncService } from '../services/cloudSyncService';
+import { popularTopics, bookCategories } from '../data/mockData';
 
 export function AcademicSearchPanel() {
   const [query, setQuery] = useState('');
@@ -50,7 +53,7 @@ export function AcademicSearchPanel() {
   } | null>(null);
   const [selectedSources, setSelectedSources] = useState<string[]>(['crossref', 'openLibrary', 'googleBooks']);
   const [savedResources, setSavedResources] = useState<Resource[]>([]);
-  const [activeTab, setActiveTab] = useState<'search' | 'saved'>('search');
+  const [activeTab, setActiveTab] = useState<'search' | 'saved' | 'guide'>('search');
   const [isLoadingSaved, setIsLoadingSaved] = useState(false);
   const [isSaving, setIsSaving] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -59,6 +62,7 @@ export function AcademicSearchPanel() {
   const [isCloudConnected, setIsCloudConnected] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const sources = [
     { 
@@ -174,6 +178,15 @@ export function AcademicSearchPanel() {
     setIsSearching(false);
   };
 
+  const handleTopicClick = (selectedTopic: string) => {
+    setQuery(selectedTopic);
+    setActiveTab('search');
+    // Ejecutar búsqueda automáticamente
+    setTimeout(() => {
+      handleSearch();
+    }, 100);
+  };
+
   const handleSaveResource = async (resource: Resource, source: string) => {
     setIsSaving(resource.id);
     try {
@@ -278,6 +291,10 @@ export function AcademicSearchPanel() {
     }).format(date);
   };
 
+  const filteredTopics = selectedCategory === 'all' 
+    ? popularTopics 
+    : bookCategories.find(cat => cat.id === selectedCategory)?.subcategories || [];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -342,6 +359,19 @@ export function AcademicSearchPanel() {
               <div className="flex items-center space-x-2">
                 <Search className="h-4 w-4" />
                 <span>Buscar en APIs</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('guide')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'guide'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Lightbulb className="h-4 w-4" />
+                <span>Guía de Búsqueda</span>
               </div>
             </button>
             <button
@@ -636,6 +666,184 @@ export function AcademicSearchPanel() {
                   </p>
                 </div>
               )}
+            </>
+          ) : activeTab === 'guide' ? (
+            <>
+              {/* Search Guide Tab */}
+              <div className="space-y-6">
+                <div className="text-center mb-8">
+                  <Lightbulb className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Guía de Búsqueda Académica</h3>
+                  <p className="text-gray-600 max-w-2xl mx-auto">
+                    Utiliza estas categorías y temas populares como guía para realizar búsquedas efectivas en las APIs académicas.
+                    Haz clic en cualquier tema para buscar automáticamente.
+                  </p>
+                </div>
+
+                {/* Category Filter */}
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Layers className="h-5 w-5 mr-2 text-indigo-600" />
+                    Categorías Temáticas
+                  </h4>
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    <button
+                      onClick={() => setSelectedCategory('all')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        selectedCategory === 'all'
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700'
+                      }`}
+                    >
+                      Todos los Temas
+                    </button>
+                    {bookCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => setSelectedCategory(category.id)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          selectedCategory === category.id
+                            ? `bg-${category.color}-600 text-white`
+                            : `bg-${category.color}-50 text-${category.color}-700 hover:bg-${category.color}-100`
+                        }`}
+                      >
+                        {category.name}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Category Description */}
+                  {selectedCategory !== 'all' && (
+                    <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                      {(() => {
+                        const category = bookCategories.find(cat => cat.id === selectedCategory);
+                        return category ? (
+                          <div>
+                            <h5 className="font-semibold text-gray-900 mb-2">{category.name}</h5>
+                            <p className="text-gray-600 text-sm">{category.description}</p>
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Popular Topics */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+                    {selectedCategory === 'all' ? 'Temas Populares para Búsqueda' : 
+                     `Temas de ${bookCategories.find(cat => cat.id === selectedCategory)?.name || 'la Categoría'}`}
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {filteredTopics.slice(0, 30).map((topic, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleTopicClick(topic)}
+                        className="p-3 bg-white border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-all text-left group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-700 group-hover:text-indigo-700 font-medium">
+                            {topic}
+                          </span>
+                          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-all" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {filteredTopics.length > 30 && (
+                    <div className="mt-4 text-center">
+                      <p className="text-sm text-gray-500">
+                        Y {filteredTopics.length - 30} temas más disponibles...
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Search Tips */}
+                <div className="mt-8 bg-blue-50 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                    <Zap className="h-5 w-5 mr-2" />
+                    Consejos para Búsquedas Efectivas
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <h5 className="font-semibold text-blue-800">Términos Específicos</h5>
+                      <ul className="space-y-1 text-blue-700">
+                        <li>• Usa términos técnicos precisos</li>
+                        <li>• Combina conceptos relacionados</li>
+                        <li>• Incluye sinónimos en inglés</li>
+                        <li>• Especifica el área de estudio</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="font-semibold text-blue-800">Mejores Prácticas</h5>
+                      <ul className="space-y-1 text-blue-700">
+                        <li>• Selecciona múltiples fuentes</li>
+                        <li>• Usa comillas para frases exactas</li>
+                        <li>• Prueba variaciones del término</li>
+                        <li>• Revisa los resultados combinados</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Example Searches */}
+                <div className="mt-6 bg-green-50 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                    <Target className="h-5 w-5 mr-2" />
+                    Ejemplos de Búsquedas Exitosas
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      {
+                        query: "machine learning algorithms",
+                        description: "Para encontrar papers sobre algoritmos de ML",
+                        sources: ["CrossRef", "arXiv", "Semantic Scholar"]
+                      },
+                      {
+                        query: "quantum computing applications",
+                        description: "Aplicaciones de computación cuántica",
+                        sources: ["arXiv", "Semantic Scholar", "Google Books"]
+                      },
+                      {
+                        query: "climate change mitigation",
+                        description: "Estrategias de mitigación del cambio climático",
+                        sources: ["CrossRef", "Open Library", "Google Books"]
+                      },
+                      {
+                        query: "artificial intelligence ethics",
+                        description: "Ética en inteligencia artificial",
+                        sources: ["Semantic Scholar", "CrossRef", "Google Books"]
+                      }
+                    ].map((example, index) => (
+                      <div key={index} className="p-4 bg-white border border-green-200 rounded-lg">
+                        <button
+                          onClick={() => handleTopicClick(example.query)}
+                          className="w-full text-left group"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <code className="text-green-800 font-mono text-sm bg-green-100 px-2 py-1 rounded">
+                              {example.query}
+                            </code>
+                            <ArrowRight className="h-4 w-4 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          <p className="text-sm text-green-700 mb-2">{example.description}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {example.sources.map((source, idx) => (
+                              <span key={idx} className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded">
+                                {source}
+                              </span>
+                            ))}
+                          </div>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </>
           ) : (
             <>
