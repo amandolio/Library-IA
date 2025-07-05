@@ -1,30 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Cloud, 
-  CloudUpload, 
-  CloudDownload, 
-  Wifi, 
-  WifiOff,
-  CheckCircle, 
-  XCircle, 
-  AlertCircle,
-  RefreshCw,
-  Database,
-  Upload,
-  Download,
-  Trash2,
-  Settings,
-  Activity,
-  BarChart3,
-  Clock,
-  Users,
-  Shield,
-  Zap,
-  Globe,
-  Server,
-  HardDrive,
-  SyncIcon as Sync
-} from 'lucide-react';
+import { Cloud, UploadCloud as CloudUpload, DownloadCloud as CloudDownload, Wifi, WifiOff, CheckCircle, XCircle, AlertCircle, RefreshCw, Database, Upload, Download, Trash2, Settings, Activity, BarChart3, Clock, Users, Shield, Zap, Globe, Server, HardDrive, FolderSyncIcon as Sync } from 'lucide-react';
 import { cloudSyncService } from '../services/cloudSyncService';
 import { databaseService } from '../services/databaseService';
 
