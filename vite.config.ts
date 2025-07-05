@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Configurar límites de event listeners para evitar warnings
+process.setMaxListeners && process.setMaxListeners(50);
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -36,6 +39,20 @@ export default defineConfig({
         target: 'https://www.googleapis.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/googlebooks/, '')
+      }
+    }
+  },
+  define: {
+    // Configuraciones globales para evitar warnings de listeners
+    'process.env.NODE_OPTIONS': JSON.stringify('--max-old-space-size=4096'),
+  },
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suprimir warnings específicos de event listeners
+        if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+        if (warning.message.includes('MaxListenersExceededWarning')) return;
+        warn(warning);
       }
     }
   }
