@@ -9,6 +9,7 @@ import { AuthModal } from './components/AuthModal';
 import { PlagiarismDetectionPanel } from './components/PlagiarismDetectionPanel';
 import { LibrarySyncPanel } from './components/LibrarySyncPanel';
 import { AcademicSearchPanel } from './components/AcademicSearchPanel';
+import { CloudSyncPanel } from './components/CloudSyncPanel';
 import { mockUser, mockResources, getRecommendations, updateSessionActivity } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { User } from './types';
@@ -139,6 +140,8 @@ function App() {
         return <PlagiarismDetectionPanel />;
       case 'library-sync':
         return <LibrarySyncPanel />;
+      case 'cloud-sync':
+        return <CloudSyncPanel />;
       case 'favorites':
         return (
           <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">

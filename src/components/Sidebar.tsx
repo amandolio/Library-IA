@@ -13,7 +13,8 @@ import {
   Lightbulb,
   Database,
   Shield,
-  Globe
+  Globe,
+  Cloud
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -30,6 +31,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'recommendations', label: 'Recomendaciones IA', icon: Brain },
     { id: 'plagiarism-detection', label: 'Detección de Plagios', icon: Shield },
     { id: 'library-sync', label: 'Sincronización', icon: Database },
+    { id: 'cloud-sync', label: 'Sincronización Nube', icon: Cloud },
     { id: 'favorites', label: 'Favoritos', icon: Star },
     { id: 'history', label: 'Historial', icon: History },
     { id: 'trending', label: 'Tendencias', icon: TrendingUp },
