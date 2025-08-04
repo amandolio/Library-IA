@@ -4,18 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
-    "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && vite",
-    "build": "set NODE_OPTIONS=--max-old-space-size=4096 && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-=======
     "dev": "NODE_OPTIONS=--max-old-space-size=4096 vite",
     "build": "NODE_OPTIONS=--max-old-space-size=4096 vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "postinstall": "node -e \"process.setMaxListeners && process.setMaxListeners(50)\""
->>>>>>> 91b03c4f9037ea47837a53d49bd0d10b98c744ca
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
