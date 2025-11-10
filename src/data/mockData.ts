@@ -5,7 +5,7 @@ import { User, Resource, Recommendation } from '../types';
 export const superAdmin: User = {
   id: 'admin-001',
   name: 'Alain Raidel Vazquez Rodriguez',
-  email: 'alainr@admin.edu.cu',
+  email: 'alainr@administrador.uci.cu',
   role: 'admin',
   department: 'Computer Science',
   academicLevel: 'Administrator',
@@ -2748,11 +2748,9 @@ export const validateEmailDomain = (email: string, role: string): boolean => {
   const domain = email.split('@')[1];
   switch (role) {
     case 'admin':
-      return domain === 'admin.edu.cu';
-    case 'faculty':
-      return domain === 'trabajador.edu.cu';
-    case 'student':
-      return domain === 'estudiante.edu.cu';
+      return domain === 'administrador.uci.cu';
+    case 'lector':
+      return domain === 'lector.uci.cu';
     default:
       return false;
   }
@@ -2761,18 +2759,21 @@ export const validateEmailDomain = (email: string, role: string): boolean => {
 export const getRequiredDomain = (role: string): string => {
   switch (role) {
     case 'admin':
-      return '@admin.edu.cu';
-    case 'faculty':
-      return '@trabajador.edu.cu';
-    case 'student':
-      return '@estudiante.edu.cu';
+      return '@administrador.uci.cu';
+    case 'lector':
+      return '@lector.uci.cu';
     default:
-      return '@estudiante.edu.cu';
+      return '@lector.uci.cu';
   }
 };
 
 export const findUserByEmail = (email: string): User | null => {
   return userDatabase.find(user => user.email === email) || null;
+};
+
+export const usernameExists = (username: string, role: string): boolean => {
+  const email = `${username}@${role === 'admin' ? 'administrador' : 'lector'}.uci.cu`;
+  return userDatabase.some(user => user.email === email);
 };
 
 export const addUserToDatabase = (user: User): boolean => {
@@ -2859,10 +2860,10 @@ export const cleanInactiveSessions = (): void => {
 export const mockUser: User = {
   id: 'user-001',
   name: 'Juan Pérez',
-  email: 'juan.perez@estudiante.edu.cu',
-  role: 'student',
+  email: 'juan.perez@lector.uci.cu',
+  role: 'lector',
   department: 'Computer Science',
-  academicLevel: 'Undergraduate',
+  academicLevel: 'Reader',
   interests: ['Machine Learning', 'Web Development', 'Data Science'],
   readingHistory: ['ai-001', 'prog-001', 'data-001'],
   favoriteGenres: ['Computer Science', 'Artificial Intelligence'],

@@ -13,13 +13,14 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { User as UserType } from '../types';
-import { 
-  superAdmin, 
-  validateEmailDomain, 
-  getRequiredDomain, 
-  findUserByEmail, 
+import {
+  superAdmin,
+  validateEmailDomain,
+  getRequiredDomain,
+  findUserByEmail,
   addUserToDatabase,
-  createSession 
+  createSession,
+  usernameExists
 } from '../data/mockData';
 
 interface AuthModalProps {
@@ -34,14 +35,12 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
   const [isLogin, setIsLogin] = useState(!isAdminCreating);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    username: '',
+    fullName: '',
     password: '',
     confirmPassword: '',
-    role: 'student' as 'student' | 'faculty' | 'admin',
-    department: '',
-    studentId: '',
-    employeeId: ''
+    role: 'lector' as 'lector' | 'admin',
+    department: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -61,37 +60,35 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
   ];
 
   const roleIcons = {
-    student: GraduationCap,
-    faculty: BookOpen,
+    lector: BookOpen,
     admin: Shield
   };
 
   const roleLabels = {
-    student: 'Estudiante',
-    faculty: 'Docente',
+    lector: 'Lector',
     admin: 'Administrador'
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email) {
-      newErrors.email = 'El email es requerido';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email inválido';
-    } else if (!isLogin && !validateEmailDomain(formData.email, formData.role)) {
-      newErrors.email = `El email debe terminar en ${getRequiredDomain(formData.role)}`;
+    if (!formData.username) {
+      newErrors.username = 'El nombre de usuario es requerido';
+    } else if (!/^[a-zA-Z0-9._-]+$/.test(formData.username)) {
+      newErrors.username = 'El nombre de usuario solo puede contener letras, números, puntos y guiones';
+    } else if (!isLogin && usernameExists(formData.username, formData.role)) {
+      newErrors.username = 'Este nombre de usuario ya está en uso';
     }
 
     if (!formData.password) {
       newErrors.password = 'La contraseña es requerida';
-    } else if (formData.password.length < 6 && !(isLogin && formData.email !== 'alainr@admin.edu.cu')) {
+    } else if (formData.password.length < 6 && !(isLogin && formData.username !== 'alainr')) {
       newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
     }
 
     if (!isLogin || isAdminCreating) {
-      if (!formData.name) {
-        newErrors.name = 'El nombre es requerido';
+      if (!formData.fullName) {
+        newErrors.fullName = 'El nombre completo es requerido';
       }
 
       if (!formData.confirmPassword) {
@@ -103,14 +100,6 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
       if (!formData.department) {
         newErrors.department = 'El departamento es requerido';
       }
-
-      if (formData.role === 'student' && !formData.studentId) {
-        newErrors.studentId = 'El ID de estudiante es requerido';
-      }
-
-      if ((formData.role === 'faculty' || formData.role === 'admin') && !formData.employeeId) {
-        newErrors.employeeId = 'El ID de empleado es requerido';
-      }
     }
 
     setErrors(newErrors);
@@ -119,69 +108,60 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
 
-    // Simular llamada a API
     setTimeout(() => {
       if (isLogin && !isAdminCreating) {
-        // Buscar usuario en la base de datos
-        const foundUser = findUserByEmail(formData.email);
+        const email = `${formData.username}@${formData.role === 'admin' ? 'administrador' : 'lector'}.uci.cu`;
+        const foundUser = findUserByEmail(email);
 
         if (foundUser) {
-          // Verificar contraseña específica para superadmin
-          if (formData.email === 'alainr@admin.edu.cu' && formData.password !== 'Sis19900*') {
+          if (formData.username === 'alainr' && formData.password !== 'Sis19900*') {
             setErrors({ password: 'Contraseña incorrecta para el superadministrador' });
             setIsLoading(false);
             return;
           }
-          
-          // Login exitoso - crear sesión y guardar usuario completo
+
           const session = createSession(foundUser);
           console.log(`Usuario logueado: ${foundUser.name} (${foundUser.email})`);
           console.log(`Sesión creada: ${session.sessionId}`);
-          
+
           onLogin(foundUser);
           onClose();
         } else {
-          setErrors({ email: 'Usuario no encontrado o credenciales incorrectas' });
+          setErrors({ username: 'Usuario no encontrado o credenciales incorrectas' });
         }
       } else {
-        // Crear nuevo usuario
+        const email = `${formData.username}@${formData.role === 'admin' ? 'administrador' : 'lector'}.uci.cu`;
         const newUser: UserType = {
           id: `user-${Date.now()}`,
-          name: formData.name,
-          email: formData.email,
+          name: formData.fullName,
+          email: email,
           role: formData.role,
           department: formData.department,
-          academicLevel: formData.role === 'admin' ? 'Administrator' : 
-                        formData.role === 'faculty' ? 'Professor' : 'Undergraduate',
+          academicLevel: formData.role === 'admin' ? 'Administrator' : 'Reader',
           interests: ['General Interest'],
           readingHistory: [],
           favoriteGenres: [formData.department],
           researchAreas: ['General Research']
         };
 
-        // Agregar a la base de datos
         addUserToDatabase(newUser);
-        
-        setSuccessMessage(`Usuario ${formData.name} creado exitosamente como ${roleLabels[formData.role]}. Ya puede iniciar sesión con sus credenciales.`);
-        
-        // Limpiar formulario
+
+        setSuccessMessage(`Usuario ${formData.fullName} creado exitosamente como ${roleLabels[formData.role]}. Ya puede iniciar sesión con sus credenciales.`);
+
         setFormData({
-          name: '',
-          email: '',
+          username: '',
+          fullName: '',
           password: '',
           confirmPassword: '',
-          role: 'student',
-          department: '',
-          studentId: '',
-          employeeId: ''
+          role: 'lector',
+          department: ''
         });
-        
-        // Cerrar modal después de 3 segundos
+
         setTimeout(() => {
           setSuccessMessage('');
           if (!isAdminCreating) {
@@ -200,14 +180,14 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
     }
   };
 
-  const handleRoleChange = (newRole: 'student' | 'faculty' | 'admin') => {
-    setFormData(prev => ({ 
-      ...prev, 
+  const handleRoleChange = (newRole: 'lector' | 'admin') => {
+    setFormData(prev => ({
+      ...prev,
       role: newRole,
-      email: '' // Limpiar email cuando cambie el rol
+      username: ''
     }));
-    if (errors.email) {
-      setErrors(prev => ({ ...prev, email: '' }));
+    if (errors.username) {
+      setErrors(prev => ({ ...prev, username: '' }));
     }
   };
 
@@ -307,14 +287,14 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tipo de Usuario
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {Object.entries(roleLabels).map(([role, label]) => {
                   const Icon = roleIcons[role as keyof typeof roleIcons];
                   return (
                     <button
                       key={role}
                       type="button"
-                      onClick={() => handleRoleChange(role as 'student' | 'faculty' | 'admin')}
+                      onClick={() => handleRoleChange(role as 'lector' | 'admin')}
                       className={`p-3 border rounded-lg flex flex-col items-center space-y-1 transition-all ${
                         formData.role === role
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -330,7 +310,32 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
             </div>
           )}
 
-          {/* Name (only for user creation) */}
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre de Usuario
+              {!isLogin && (
+                <span className="text-xs text-gray-500 ml-2">
+                  (se agregará @{formData.role === 'admin' ? 'administrador' : 'lector'}.uci.cu)
+                </span>
+              )}
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.username ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Nombre de usuario"
+              />
+            </div>
+            {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
+          </div>
+
+          {/* Full Name (only for user creation) */}
           {(!isLogin || isAdminCreating) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -340,45 +345,18 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
                   className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
+                    errors.fullName ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Ingresa el nombre completo"
+                  placeholder="Tu nombre completo"
                 />
               </div>
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+              {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
             </div>
           )}
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-              {(!isLogin || isAdminCreating) && (
-                <span className="text-xs text-gray-500 ml-2">
-                  (debe terminar en {getRequiredDomain(formData.role)})
-                </span>
-              )}
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder={
-                  isLogin ? "email@dominio.edu.cu" : 
-                  `usuario${getRequiredDomain(formData.role)}`
-                }
-              />
-            </div>
-            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-          </div>
 
           {/* Password */}
           <div>
@@ -451,29 +429,6 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
             </div>
           )}
 
-          {/* Student/Employee ID (only for user creation) */}
-          {(!isLogin || isAdminCreating) && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {formData.role === 'student' ? 'ID de Estudiante' : 'ID de Empleado'}
-              </label>
-              <input
-                type="text"
-                value={formData.role === 'student' ? formData.studentId : formData.employeeId}
-                onChange={(e) => handleInputChange(
-                  formData.role === 'student' ? 'studentId' : 'employeeId', 
-                  e.target.value
-                )}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.studentId || errors.employeeId ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder={formData.role === 'student' ? 'Ej: 2024001234' : 'Ej: EMP001234'}
-              />
-              {(errors.studentId || errors.employeeId) && (
-                <p className="text-red-500 text-xs mt-1">{errors.studentId || errors.employeeId}</p>
-              )}
-            </div>
-          )}
 
           {/* Submit Button */}
           <button
@@ -515,14 +470,12 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
                     setIsLogin(!isLogin);
                     setErrors({});
                     setFormData({
-                      name: '',
-                      email: '',
+                      username: '',
+                      fullName: '',
                       password: '',
                       confirmPassword: '',
-                      role: 'student',
-                      department: '',
-                      studentId: '',
-                      employeeId: ''
+                      role: 'lector',
+                      department: ''
                     });
                   }}
                   className="ml-1 text-blue-600 hover:text-blue-700 font-medium"
@@ -538,9 +491,8 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-600 mb-2 font-medium">Cuentas de demostración:</p>
               <div className="space-y-1 text-xs text-gray-500">
-                <p><strong>Superadmin:</strong> alainr@admin.edu.cu</p>
-                <p><strong>Docente:</strong> profesor@trabajador.edu.cu</p>
-                <p><strong>Estudiante:</strong> estudiante@estudiante.edu.cu</p>
+                <p><strong>Superadministrador:</strong> alainr (rol: administrador)</p>
+                <p><strong>Lector:</strong> juan.perez (rol: lector)</p>
                 <p className="text-gray-400">Contraseña: cualquiera (excepto superadmin)</p>
               </div>
             </div>

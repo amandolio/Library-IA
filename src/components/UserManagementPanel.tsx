@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  UserCheck, 
-  Clock, 
-  Shield, 
-  GraduationCap, 
+import {
+  Users,
+  UserCheck,
+  Clock,
+  Shield,
   BookOpen,
   Search,
   Filter,
@@ -114,8 +113,7 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin': return Shield;
-      case 'faculty': return BookOpen;
-      case 'student': return GraduationCap;
+      case 'lector': return BookOpen;
       default: return Users;
     }
   };
@@ -123,8 +121,7 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin': return 'text-red-600 bg-red-50 border-red-200';
-      case 'faculty': return 'text-purple-600 bg-purple-50 border-purple-200';
-      case 'student': return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'lector': return 'text-blue-600 bg-blue-50 border-blue-200';
       default: return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
@@ -132,8 +129,7 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'admin': return 'Administrador';
-      case 'faculty': return 'Docente';
-      case 'student': return 'Estudiante';
+      case 'lector': return 'Lector';
       default: return role;
     }
   };
@@ -175,8 +171,7 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
   const userStats = {
     total: allUsers.length,
     admins: allUsers.filter(u => u.role === 'admin').length,
-    faculty: allUsers.filter(u => u.role === 'faculty').length,
-    students: allUsers.filter(u => u.role === 'student').length,
+    lectores: allUsers.filter(u => u.role === 'lector').length,
     activeSessions: activeSessions.length
   };
 
@@ -201,7 +196,7 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -225,20 +220,10 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Docentes</p>
-              <p className="text-2xl font-bold text-purple-600">{userStats.faculty}</p>
+              <p className="text-sm text-gray-600">Lectores</p>
+              <p className="text-2xl font-bold text-blue-600">{userStats.lectores}</p>
             </div>
-            <BookOpen className="h-8 w-8 text-purple-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Estudiantes</p>
-              <p className="text-2xl font-bold text-blue-600">{userStats.students}</p>
-            </div>
-            <GraduationCap className="h-8 w-8 text-blue-600" />
+            <BookOpen className="h-8 w-8 text-blue-600" />
           </div>
         </div>
 
@@ -311,8 +296,7 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
                   >
                     <option value="all">Todos los roles</option>
                     <option value="admin">Administradores</option>
-                    <option value="faculty">Docentes</option>
-                    <option value="student">Estudiantes</option>
+                    <option value="lector">Lectores</option>
                   </select>
                 </div>
               </div>
