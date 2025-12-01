@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  Home, 
-  Search, 
-  BookOpen, 
-  Star, 
-  History, 
-  TrendingUp, 
-  Users, 
+import {
+  Home,
+  Search,
+  BookOpen,
+  Star,
+  History,
+  TrendingUp,
+  Users,
   Settings,
   Brain,
   BarChart3,
@@ -14,7 +14,8 @@ import {
   Database,
   Shield,
   Globe,
-  Cloud
+  Cloud,
+  MapPin
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,6 +30,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'academic-search', label: 'APIs Académicas', icon: Globe },
     { id: 'search', label: 'Búsqueda Avanzada', icon: Search },
     { id: 'recommendations', label: 'Recomendaciones IA', icon: Brain },
+    { id: 'national-recommendations', label: 'Recomendación Nacional', icon: MapPin },
     { id: 'plagiarism-detection', label: 'Detección de Plagios', icon: Shield },
     { id: 'library-sync', label: 'Sincronización', icon: Database },
     { id: 'cloud-sync', label: 'Sincronización Nube', icon: Cloud },

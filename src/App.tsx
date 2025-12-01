@@ -10,6 +10,7 @@ import { PlagiarismDetectionPanel } from './components/PlagiarismDetectionPanel'
 import { LibrarySyncPanel } from './components/LibrarySyncPanel';
 import { AcademicSearchPanel } from './components/AcademicSearchPanel';
 import { CloudSyncPanel } from './components/CloudSyncPanel';
+import { NationalRecommendations } from './components/NationalRecommendations';
 import { mockUser, mockResources, getRecommendations, updateSessionActivity } from './data/mockData';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { User } from './types';
