@@ -15,8 +15,60 @@ export const superAdmin: User = {
   researchAreas: ['System Administration', 'Educational Technology', 'AI in Education']
 };
 
+// Usuarios de demostración predefinidos
+const demoUsers: User[] = [
+  {
+    id: 'user-002',
+    name: 'Juan Pérez García',
+    email: 'juan.perez@lector.uci.cu',
+    role: 'lector',
+    department: 'Computer Science',
+    academicLevel: 'Undergraduate',
+    interests: ['Machine Learning', 'Web Development', 'Data Science'],
+    readingHistory: ['ai-001', 'prog-001', 'data-001'],
+    favoriteGenres: ['Computer Science', 'Artificial Intelligence'],
+    researchAreas: ['Machine Learning', 'Natural Language Processing']
+  },
+  {
+    id: 'user-003',
+    name: 'María García López',
+    email: 'maria.garcia@lector.uci.cu',
+    role: 'lector',
+    department: 'Information Systems',
+    academicLevel: 'Graduate',
+    interests: ['Cybersecurity', 'Databases', 'Cloud Computing'],
+    readingHistory: ['cyber-001', 'db-001', 'sys-004'],
+    favoriteGenres: ['Cybersecurity', 'Systems'],
+    researchAreas: ['Network Security', 'Distributed Systems']
+  },
+  {
+    id: 'user-004',
+    name: 'Carlos Martínez Rodríguez',
+    email: 'carlos.martinez@lector.uci.cu',
+    role: 'lector',
+    department: 'Software Engineering',
+    academicLevel: 'Postgraduate',
+    interests: ['Software Architecture', 'Agile Development', 'DevOps'],
+    readingHistory: ['se-001', 'prog-004', 'prog-006'],
+    favoriteGenres: ['Software Engineering', 'Development'],
+    researchAreas: ['Software Quality', 'Agile Methodologies']
+  },
+  {
+    id: 'admin-002',
+    name: 'Administrador Prueba',
+    email: 'admin@administrador.uci.cu',
+    role: 'admin',
+    department: 'Administration',
+    academicLevel: 'Administrator',
+    interests: ['System Administration', 'Security', 'User Management'],
+    readingHistory: [],
+    favoriteGenres: ['Administration'],
+    researchAreas: ['System Management']
+  }
+];
+
 // Base de datos de usuarios en memoria
-let userDatabase: User[] = [superAdmin];
+let userDatabase: User[] = [superAdmin, ...demoUsers];
 
 // Sesiones activas
 export interface ActiveSession {
