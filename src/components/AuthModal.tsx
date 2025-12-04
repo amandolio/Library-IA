@@ -489,11 +489,17 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
           {/* Demo Accounts */}
           {isLogin && !isAdminCreating && (
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-600 mb-2 font-medium">Cuentas de demostración:</p>
-              <div className="space-y-1 text-xs text-gray-500">
-                <p><strong>Superadministrador:</strong> alainr (rol: administrador)</p>
-                <p><strong>Lector:</strong> juan.perez (rol: lector)</p>
-                <p className="text-gray-400">Contraseña: cualquiera (excepto superadmin)</p>
+              <p className="text-xs text-gray-600 mb-2 font-medium">Cuentas de demostración disponibles:</p>
+              <div className="space-y-2 text-xs text-gray-500">
+                <div className="border-b border-gray-200 pb-1">
+                  <p><strong>Lectores:</strong></p>
+                  <p>juan.perez | maria.garcia | carlos.martinez</p>
+                </div>
+                <div className="border-b border-gray-200 pb-1">
+                  <p><strong>Administradores:</strong></p>
+                  <p>alainr | admin</p>
+                </div>
+                <p className="text-gray-400 pt-1">Contraseña: cualquiera (excepto alainr: Sis19900*)</p>
               </div>
             </div>
           )}
