@@ -4,7 +4,7 @@ import { User, Resource, Recommendation } from '../types';
 
 export const superAdmin: User = {
   id: 'admin-001',
-  name: 'Alain Raidel Vazquez Rodriguez',
+  name: 'alainr',
   email: 'alainr@administrador.uci.cu',
   role: 'admin',
   department: 'Computer Science',
@@ -52,18 +52,6 @@ const demoUsers: User[] = [
     readingHistory: ['se-001', 'prog-004', 'prog-006'],
     favoriteGenres: ['Software Engineering', 'Development'],
     researchAreas: ['Software Quality', 'Agile Methodologies']
-  },
-  {
-    id: 'admin-002',
-    name: 'Administrador Prueba',
-    email: 'admin@administrador.uci.cu',
-    role: 'admin',
-    department: 'Administration',
-    academicLevel: 'Administrator',
-    interests: ['System Administration', 'Security', 'User Management'],
-    readingHistory: [],
-    favoriteGenres: ['Administration'],
-    researchAreas: ['System Management']
   }
 ];
 

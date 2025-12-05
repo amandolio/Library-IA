@@ -494,12 +494,13 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
                 <div className="border-b border-gray-200 pb-1">
                   <p><strong>Lectores:</strong></p>
                   <p>juan.perez | maria.garcia | carlos.martinez</p>
+                  <p className="text-gray-400">Contraseña: cualquiera</p>
                 </div>
-                <div className="border-b border-gray-200 pb-1">
-                  <p><strong>Administradores:</strong></p>
-                  <p>alainr | admin</p>
+                <div>
+                  <p><strong>Administrador:</strong></p>
+                  <p>alainr</p>
+                  <p className="text-gray-400">Contraseña: Sis19900*</p>
                 </div>
-                <p className="text-gray-400 pt-1">Contraseña: cualquiera (excepto alainr: Sis19900*)</p>
               </div>
             </div>
           )}
