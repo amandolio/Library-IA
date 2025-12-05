@@ -4,15 +4,15 @@ import { User, Resource, Recommendation } from '../types';
 
 export const superAdmin: User = {
   id: 'admin-001',
-  name: 'alainr',
+  name: 'Administrador Principal',
   email: 'alainr@administrador.uci.cu',
   role: 'admin',
   department: 'Computer Science',
   academicLevel: 'Administrator',
   interests: ['System Administration', 'AI', 'Database Management'],
-  readingHistory: ['res-001', 'res-002', 'res-003'],
-  favoriteGenres: ['Computer Science', 'Artificial Intelligence'],
-  researchAreas: ['System Administration', 'Educational Technology', 'AI in Education']
+  readingHistory: [],
+  favoriteGenres: ['Computer Science'],
+  researchAreas: ['System Administration']
 };
 
 // Usuarios de demostración predefinidos
