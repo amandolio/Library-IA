@@ -15,6 +15,19 @@ export const superAdmin: User = {
   researchAreas: ['System Administration']
 };
 
+export const newAdmin: User = {
+  id: 'admin-002',
+  name: 'Admin Nuevo',
+  email: 'admin.nuevo@administrador.uci.cu',
+  role: 'admin',
+  department: 'Computer Science',
+  academicLevel: 'Administrator',
+  interests: ['System Administration'],
+  readingHistory: [],
+  favoriteGenres: ['Computer Science'],
+  researchAreas: ['System Administration']
+};
+
 // Usuarios de demostración predefinidos
 const demoUsers: User[] = [
   {
@@ -56,7 +69,7 @@ const demoUsers: User[] = [
 ];
 
 // Base de datos de usuarios en memoria
-let userDatabase: User[] = [superAdmin, ...demoUsers];
+let userDatabase: User[] = [superAdmin, newAdmin, ...demoUsers];
 
 // Sesiones activas
 export interface ActiveSession {
