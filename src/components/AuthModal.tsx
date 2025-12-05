@@ -82,7 +82,7 @@ export function AuthModal({ isOpen, onClose, onLogin, currentUser, isAdminCreati
 
     if (!formData.password) {
       newErrors.password = 'La contraseña es requerida';
-    } else if (formData.password.length < 6 && !(isLogin && formData.username !== 'alainr')) {
+    } else if (formData.password.length < 6 && !(isLogin && formData.username === 'alainr')) {
       newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
     }
 
