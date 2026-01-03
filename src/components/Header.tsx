@@ -1,15 +1,13 @@
 import React from 'react';
-import { Search, Bell, User, BookOpen, Settings, LogOut } from 'lucide-react';
+import { Search, Bell, User, BookOpen, Settings } from 'lucide-react';
 import { User as UserType } from '../types';
 
 interface HeaderProps {
-  user: UserType | null;
+  user: UserType;
   onProfileClick: () => void;
-  onAuthClick: () => void;
-  onLogout: () => void;
 }
 
-export function Header({ user, onProfileClick, onAuthClick, onLogout }: HeaderProps) {
+export function Header({ user, onProfileClick }: HeaderProps) {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin': return 'text-red-600 bg-red-50';
@@ -49,53 +47,31 @@ export function Header({ user, onProfileClick, onAuthClick, onLogout }: HeaderPr
           </div>
 
           <div className="flex items-center space-x-4">
-            {user ? (
-              <>
-                <button className="p-2 text-gray-500 hover:text-gray-700 relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-                </button>
-                
-                <button className="p-2 text-gray-500 hover:text-gray-700">
-                  <Settings className="h-5 w-5" />
-                </button>
-                
-                <div className="flex items-center space-x-3">
-                  <button 
-                    onClick={onProfileClick}
-                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
-                          {getRoleLabel(user.role)}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                  
-                  <button
-                    onClick={onLogout}
-                    className="p-2 text-gray-500 hover:text-red-600 transition-colors"
-                    title="Cerrar sesión"
-                  >
-                    <LogOut className="h-5 w-5" />
-                  </button>
+            <button className="p-2 text-gray-500 hover:text-gray-700 relative">
+              <Bell className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+            </button>
+
+            <button className="p-2 text-gray-500 hover:text-gray-700">
+              <Settings className="h-5 w-5" />
+            </button>
+
+            <button
+              onClick={onProfileClick}
+              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                <div className="flex items-center space-x-2">
+                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
+                    {getRoleLabel(user.role)}
+                  </span>
                 </div>
-              </>
-            ) : (
-              <button
-                onClick={onAuthClick}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-              >
-                <User className="h-4 w-4" />
-                <span>Iniciar Sesión</span>
-              </button>
-            )}
+              </div>
+            </button>
           </div>
         </div>
       </div>
