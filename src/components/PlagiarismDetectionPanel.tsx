@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Shield, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Shield,
+  AlertTriangle,
+  CheckCircle,
   XCircle,
   FileText,
   Search,
@@ -25,7 +25,9 @@ import {
   Link,
   BookOpen,
   Award,
-  TrendingUp
+  TrendingUp,
+  Upload,
+  X
 } from 'lucide-react';
 import { contentVerificationService } from '../services/contentVerificationService';
 
@@ -78,6 +80,10 @@ export function PlagiarismDetectionPanel() {
   const [showDetailedMatches, setShowDetailedMatches] = useState(false);
   const [useRealVerification, setUseRealVerification] = useState(false);
   const [verificationStats, setVerificationStats] = useState({ verificationEntries: 0, fingerprintEntries: 0 });
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfText, setPdfText] = useState('');
+  const [extractingPdf, setExtractingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState('');
 
   // Actualizar estadísticas de verificación
   useEffect(() => {
@@ -363,6 +369,100 @@ export function PlagiarismDetectionPanel() {
     setVerificationStats({ verificationEntries: 0, fingerprintEntries: 0 });
   };
 
+  const extractTextFromPdf = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        try {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          const uint8Array = new Uint8Array(arrayBuffer);
+
+          let text = '';
+          let i = 0;
+
+          while (i < uint8Array.length) {
+            const byte = uint8Array[i];
+
+            if (byte === 0x42 && uint8Array[i + 1] === 0x54) {
+              i += 2;
+              while (i < uint8Array.length && uint8Array[i] !== 0x45 && uint8Array[i] !== 0x65) {
+                const char = String.fromCharCode(uint8Array[i]);
+                if ((char >= ' ' && char <= '~') || char === '\n' || char === '\r' || char === '\t') {
+                  text += char;
+                }
+                i++;
+              }
+            } else if (byte >= 32 && byte <= 126) {
+              text += String.fromCharCode(byte);
+            }
+            i++;
+          }
+
+          const cleanedText = text
+            .split(/[\n\r]+/)
+            .map((line: string) => line.trim())
+            .filter((line: string) => line.length > 0)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .substring(0, 50000);
+
+          resolve(cleanedText || text.substring(0, 50000));
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Error al leer el archivo'));
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setPdfError('');
+
+    if (!file.type.includes('pdf') && !file.name.endsWith('.pdf')) {
+      setPdfError('Por favor carga un archivo PDF válido');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setPdfError('El archivo es demasiado grande (máximo 10 MB)');
+      return;
+    }
+
+    setPdfFile(file);
+    setExtractingPdf(true);
+
+    try {
+      const text = await extractTextFromPdf(file);
+      setPdfText(text);
+      setInputText(text);
+      setPdfError('');
+    } catch (error) {
+      setPdfError('Error al procesar el PDF. Intenta con otro archivo.');
+      setPdfFile(null);
+      setPdfText('');
+    } finally {
+      setExtractingPdf(false);
+    }
+  };
+
+  const clearPdf = () => {
+    setPdfFile(null);
+    setPdfText('');
+    setPdfError('');
+    if (inputText === pdfText) {
+      setInputText('');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -530,17 +630,81 @@ export function PlagiarismDetectionPanel() {
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
           <FileText className="h-5 w-5 mr-2 text-blue-500" />
-          Texto a Analizar
+          Texto o PDF a Analizar
         </h3>
-        
+
+        {/* PDF Upload Section */}
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center mb-3">
+            <Upload className="h-5 w-5 mr-2 text-blue-600" />
+            <h4 className="font-semibold text-blue-900">Cargar Documento PDF</h4>
+          </div>
+
+          {pdfFile ? (
+            <div className="space-y-3">
+              <div className="p-3 bg-white rounded-lg border border-blue-200 flex items-center justify-between">
+                <div className="flex items-center space-x-3 flex-1">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{pdfFile.name}</p>
+                    <p className="text-sm text-gray-600">
+                      {(pdfFile.size / 1024).toFixed(2)} KB • {pdfText.split(/\s+/).length} palabras
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={clearPdf}
+                  className="ml-3 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              {pdfText && (
+                <p className="text-sm text-green-700 bg-green-50 p-2 rounded">
+                  ✓ PDF procesado correctamente
+                </p>
+              )}
+            </div>
+          ) : (
+            <label className="block cursor-pointer">
+              <div className="p-6 border-2 border-dashed border-blue-300 rounded-lg text-center hover:bg-blue-100 transition-colors">
+                <Upload className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                <p className="font-medium text-gray-900">
+                  {extractingPdf ? 'Procesando PDF...' : 'Arrastra un PDF aquí o haz clic para cargar'}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Máximo 10 MB • Formato PDF
+                </p>
+              </div>
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handlePdfUpload}
+                disabled={extractingPdf}
+                className="hidden"
+              />
+            </label>
+          )}
+
+          {pdfError && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start">
+              <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{pdfError}</p>
+            </div>
+          )}
+        </div>
+
         {/* Sample Texts */}
         <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">Textos de ejemplo (algunos con contenido verificable):</p>
+          <p className="text-sm text-gray-600 mb-2">O elige textos de ejemplo (algunos con contenido verificable):</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {sampleTexts.map((sample, index) => (
               <button
                 key={index}
-                onClick={() => setInputText(sample.text)}
+                onClick={() => {
+                  setInputText(sample.text);
+                  clearPdf();
+                }}
                 className="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
               >
                 <div className="flex items-center justify-between mb-1">
@@ -565,17 +729,17 @@ export function PlagiarismDetectionPanel() {
         <textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Introduce el texto que deseas analizar para detectar posibles plagios y verificar su autenticidad. Puedes escribir en español o inglés..."
+          placeholder="O introduce el texto que deseas analizar para detectar posibles plagios y verificar su autenticidad. Puedes escribir en español o inglés..."
           className="w-full h-40 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
         />
-        
+
         <div className="flex items-center justify-between mt-4">
           <div className="text-sm text-gray-500">
             {inputText.length} caracteres | {inputText.split(/\s+/).filter(w => w.length > 0).length} palabras
             {inputText && (
               <span className="ml-2">
                 | Idioma detectado: <strong>
-                  {detectLanguage(inputText) === 'es' ? 'Español' : 
+                  {detectLanguage(inputText) === 'es' ? 'Español' :
                    detectLanguage(inputText) === 'en' ? 'English' : 'Mixto'}
                 </strong>
               </span>
