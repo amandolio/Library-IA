@@ -25,9 +25,7 @@ import {
   Link,
   BookOpen,
   Award,
-  TrendingUp,
-  Upload,
-  X
+  TrendingUp
 } from 'lucide-react';
 import { contentVerificationService } from '../services/contentVerificationService';
 
@@ -80,10 +78,6 @@ export function PlagiarismDetectionPanel() {
   const [showDetailedMatches, setShowDetailedMatches] = useState(false);
   const [useRealVerification, setUseRealVerification] = useState(false);
   const [verificationStats, setVerificationStats] = useState({ verificationEntries: 0, fingerprintEntries: 0 });
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [pdfText, setPdfText] = useState('');
-  const [extractingPdf, setExtractingPdf] = useState(false);
-  const [pdfError, setPdfError] = useState('');
 
   // Actualizar estadísticas de verificación
   useEffect(() => {

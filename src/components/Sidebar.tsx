@@ -15,7 +15,8 @@ import {
   Shield,
   Globe,
   Cloud,
-  MapPin
+  MapPin,
+  FileText
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -32,6 +33,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'recommendations', label: 'Recomendaciones IA', icon: Brain },
     { id: 'national-recommendations', label: 'Recomendación Nacional', icon: MapPin },
     { id: 'plagiarism-detection', label: 'Detección de Plagios', icon: Shield },
+    { id: 'pdf-analysis', label: 'Análisis de PDF', icon: FileText },
     { id: 'library-sync', label: 'Sincronización', icon: Database },
     { id: 'cloud-sync', label: 'Sincronización Nube', icon: Cloud },
     { id: 'favorites', label: 'Favoritos', icon: Star },

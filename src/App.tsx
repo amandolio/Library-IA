@@ -6,6 +6,7 @@ import { RecommendationsPanel } from './components/RecommendationsPanel';
 import { AdvancedSearch } from './components/AdvancedSearch';
 import { TopicSearch } from './components/TopicSearch';
 import { PlagiarismDetectionPanel } from './components/PlagiarismDetectionPanel';
+import { PDFAnalysisPanel } from './components/PDFAnalysisPanel';
 import { LibrarySyncPanel } from './components/LibrarySyncPanel';
 import { AcademicSearchPanel } from './components/AcademicSearchPanel';
 import { CloudSyncPanel } from './components/CloudSyncPanel';
@@ -47,6 +48,8 @@ function App() {
         return <AdvancedSearch resources={mockResources} />;
       case 'plagiarism-detection':
         return <PlagiarismDetectionPanel />;
+      case 'pdf-analysis':
+        return <PDFAnalysisPanel />;
       case 'library-sync':
         return <LibrarySyncPanel />;
       case 'cloud-sync':
