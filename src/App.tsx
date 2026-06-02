@@ -54,6 +54,8 @@ function App() {
         return <LibrarySyncPanel />;
       case 'cloud-sync':
         return <CloudSyncPanel />;
+      case 'national-recommendations':
+        return <NationalRecommendations />;
       case 'favorites':
         return (
           <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">

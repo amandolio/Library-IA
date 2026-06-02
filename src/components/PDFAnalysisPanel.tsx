@@ -9,7 +9,11 @@ import {
   BarChart3,
   Eye,
   Download,
+  Brain,
+  BookOpen,
+  Info,
 } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 interface PDFAnalysis {
   fileName: string;
@@ -22,6 +26,15 @@ interface PDFAnalysis {
   complexity: 'low' | 'medium' | 'high';
   keyPhrases: string[];
   timestamp: Date;
+  aiScore: number;
+  sourceScore: number;
+  highlights: HighlightItem[];
+}
+
+interface HighlightItem {
+  text: string;
+  type: 'ai' | 'source';
+  confidence: number;
 }
 
 export function PDFAnalysisPanel() {
@@ -30,6 +43,8 @@ export function PDFAnalysisPanel() {
   const [pdfError, setPdfError] = useState('');
   const [pdfAnalysis, setPdfAnalysis] = useState<PDFAnalysis | null>(null);
   const [showExtractedText, setShowExtractedText] = useState(false);
+  const [highlightFilter, setHighlightFilter] = useState<'all' | 'ai' | 'source'>('all');
+  const [showTooltip, setShowTooltip] = useState<'ai' | 'source' | null>(null);
 
   const extractTextFromPdf = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -126,6 +141,48 @@ export function PDFAnalysisPanel() {
       .map(([phrase]) => phrase);
   };
 
+  const analyzeProcedence = (text: string) => {
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const urlPatterns = /https?:\/\/[^\s]+|www\.[^\s]+/gi;
+    const citationPatterns = /\([^)]*(?:et al\.|et al|pp\.|pp|vol\.|vol|\d{4}|ISBN|DOI)[^)]*\)|\[[0-9]+\]|(?:Author|Smith|Johnson|Lee|García|López|Martínez|Rodríguez)\s+\(/gi;
+    const biographyKeywords = /(?:references|bibliography|bibliografía|referencias|works cited|obras citadas)/gi;
+
+    let sourceScore = 0;
+    let aiScore = 0;
+    const highlights: HighlightItem[] = [];
+    let sourceCount = 0;
+
+    sentences.forEach((sentence) => {
+      const hasUrl = urlPatterns.test(sentence);
+      const hasCitation = citationPatterns.test(sentence);
+      const hasSpecificData = /\d{4}|\d+%|USD|EUR|€|\$/.test(sentence);
+      const hasAcademicTerms = /hypothesis|methodology|empirical|quantitative|qualitative|research|study|analysis/gi.test(sentence);
+
+      const sourceIndicators = [hasUrl, hasCitation, hasSpecificData, hasAcademicTerms].filter(Boolean).length;
+      const isSource = sourceIndicators >= 2;
+
+      if (isSource) {
+        sourceCount++;
+        highlights.push({
+          text: sentence.trim(),
+          type: 'source',
+          confidence: Math.min(100, 60 + sourceIndicators * 10)
+        });
+      } else {
+        highlights.push({
+          text: sentence.trim(),
+          type: 'ai',
+          confidence: Math.max(40, 100 - sourceIndicators * 20)
+        });
+      }
+    });
+
+    const sourcePercentage = sentences.length > 0 ? Math.round((sourceCount / sentences.length) * 100) : 0;
+    const aiPercentage = 100 - sourcePercentage;
+
+    return { sourceScore: sourcePercentage, aiScore: aiPercentage, highlights };
+  };
+
   const analyzeText = (text: string): PDFAnalysis => {
     const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
     const pageCount = Math.ceil(wordCount / 250);
@@ -134,6 +191,7 @@ export function PDFAnalysisPanel() {
     const complexity: 'low' | 'medium' | 'high' =
       readabilityScore > 70 ? 'low' : readabilityScore > 50 ? 'medium' : 'high';
     const keyPhrases = extractKeyPhrases(text);
+    const { sourceScore, aiScore, highlights } = analyzeProcedence(text);
 
     return {
       fileName: pdfFile?.name || 'documento.pdf',
@@ -145,6 +203,9 @@ export function PDFAnalysisPanel() {
       readabilityScore,
       complexity,
       keyPhrases,
+      aiScore,
+      sourceScore,
+      highlights,
       timestamp: new Date(),
     };
   };
@@ -300,10 +361,175 @@ ${pdfAnalysis.extractedText}`;
 
             {/* Analysis Results */}
             {pdfAnalysis && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-start">
                   <CheckCircle className="h-5 w-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
                   <p className="text-green-700">PDF procesado correctamente</p>
+                </div>
+
+                {/* Procedence Analysis Banner */}
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start space-x-3">
+                  <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-blue-900">
+                    Los resultados son estimaciones probabilísticas basadas en la densidad de referencias y patrones de lenguaje.
+                  </p>
+                </div>
+
+                {/* Procedence Dashboard */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left: Metrics */}
+                  <div className="lg:col-span-1 space-y-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-6">Análisis de Procedencia</h3>
+
+                      {/* Donut Chart */}
+                      <div className="flex justify-center mb-6">
+                        <ResponsiveContainer width={200} height={200}>
+                          <PieChart>
+                            <Pie
+                              data={[
+                                { name: 'Basado en Fuentes', value: pdfAnalysis.sourceScore },
+                                { name: 'Generado por IA', value: pdfAnalysis.aiScore }
+                              ]}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={90}
+                              paddingAngle={2}
+                              dataKey="value"
+                            >
+                              <Cell fill="#10b981" />
+                              <Cell fill="#f97316" />
+                            </Pie>
+                            <Tooltip formatter={(value) => `${value}%`} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Score Indicators */}
+                      <div className="space-y-3">
+                        <div
+                          className="cursor-pointer p-3 bg-white rounded-lg border border-green-200 hover:shadow-md transition-all"
+                          onMouseEnter={() => setShowTooltip('source')}
+                          onMouseLeave={() => setShowTooltip(null)}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-2">
+                              <BookOpen className="h-4 w-4 text-green-600" />
+                              <span className="text-sm font-semibold text-gray-900">Basado en Fuentes</span>
+                            </div>
+                            <span className="text-2xl font-bold text-green-600">{pdfAnalysis.sourceScore}%</span>
+                          </div>
+                          {showTooltip === 'source' && (
+                            <div className="text-xs text-gray-600 mt-2 p-2 bg-green-50 rounded">
+                              Detectadas referencias bibliográficas, enlaces y datos verificables en el contenido.
+                            </div>
+                          )}
+                        </div>
+
+                        <div
+                          className="cursor-pointer p-3 bg-white rounded-lg border border-orange-200 hover:shadow-md transition-all"
+                          onMouseEnter={() => setShowTooltip('ai')}
+                          onMouseLeave={() => setShowTooltip(null)}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-2">
+                              <Brain className="h-4 w-4 text-orange-600" />
+                              <span className="text-sm font-semibold text-gray-900">Generado por IA</span>
+                            </div>
+                            <span className="text-2xl font-bold text-orange-600">{pdfAnalysis.aiScore}%</span>
+                          </div>
+                          {showTooltip === 'ai' && (
+                            <div className="text-xs text-gray-600 mt-2 p-2 bg-orange-50 rounded">
+                              Contenido con patrones genéricos y falta de referencias específicas.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Filter Buttons */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-gray-600 uppercase">Filtrar Resaltado:</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setHighlightFilter('all')}
+                          className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                            highlightFilter === 'all'
+                              ? 'bg-gray-800 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Todos
+                        </button>
+                        <button
+                          onClick={() => setHighlightFilter('source')}
+                          className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                            highlightFilter === 'source'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-green-100 text-green-700 hover:bg-green-200'
+                          }`}
+                        >
+                          Fuentes
+                        </button>
+                        <button
+                          onClick={() => setHighlightFilter('ai')}
+                          className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                            highlightFilter === 'ai'
+                              ? 'bg-orange-600 text-white'
+                              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                          }`}
+                        >
+                          IA
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Highlights */}
+                  <div className="lg:col-span-2">
+                    <div className="bg-white rounded-xl border border-gray-200 p-4 max-h-96 overflow-y-auto">
+                      <h4 className="font-semibold text-gray-900 mb-4 sticky top-0 bg-white pb-2">Contenido Resaltado</h4>
+                      <div className="space-y-3">
+                        {pdfAnalysis.highlights
+                          .filter(h => highlightFilter === 'all' || h.type === highlightFilter)
+                          .slice(0, 15)
+                          .map((highlight, index) => (
+                            <div
+                              key={index}
+                              className={`p-3 rounded-lg border-l-4 transition-colors ${
+                                highlight.type === 'source'
+                                  ? 'bg-green-50 border-green-400'
+                                  : 'bg-orange-50 border-orange-400'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  {highlight.type === 'source' ? (
+                                    <BookOpen className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                  ) : (
+                                    <Brain className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                                  )}
+                                  <span className={`text-xs font-semibold ${
+                                    highlight.type === 'source'
+                                      ? 'text-green-700'
+                                      : 'text-orange-700'
+                                  }`}>
+                                    {highlight.type === 'source' ? 'Basado en Fuentes' : 'Patrón IA'}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500">
+                                  {highlight.confidence}% confianza
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700 line-clamp-3">
+                                {highlight.text}
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Statistics Grid */}
