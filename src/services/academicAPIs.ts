@@ -451,25 +451,26 @@ const SIMULATED_ACADEMIC_DATABASE: Record<string, Resource[]> = {
   ]
 };
 
-// Configuración de APIs usando proxy routes para evitar CORS
+// Configuración de APIs — llamadas directas (CrossRef, OpenLibrary, arXiv y Semantic Scholar
+// tienen CORS abierto; Google Books también sin key)
 const API_CONFIG = {
   crossref: {
-    baseUrl: '/api/crossref/works',
+    baseUrl: 'https://api.crossref.org/works',
     userAgent: 'LibraryAI/1.0 (mailto:contact@libraryai.edu)'
   },
   openLibrary: {
-    baseUrl: '/api/openlibrary',
-    searchUrl: '/api/openlibrary/search.json'
+    baseUrl: 'https://openlibrary.org',
+    searchUrl: 'https://openlibrary.org/search.json'
   },
   arxiv: {
-    baseUrl: '/api/arxiv/api/query'
+    baseUrl: 'https://export.arxiv.org/api/query'
   },
   semanticScholar: {
-    baseUrl: '/api/semantic/graph/v1',
+    baseUrl: 'https://api.semanticscholar.org/graph/v1',
     apiKey: import.meta.env.VITE_SEMANTIC_SCHOLAR_API_KEY || ''
   },
   googleBooks: {
-    baseUrl: '/api/googlebooks/books/v1/volumes',
+    baseUrl: 'https://www.googleapis.com/books/v1/volumes',
     apiKey: import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || ''
   }
 };
@@ -555,7 +556,7 @@ function generateAdditionalResources(query: string, count: number = 5): Resource
 // Clase principal para gestión de APIs académicas
 export class AcademicAPIService {
   private rateLimits: Map<string, { lastCall: number; callsPerMinute: number }> = new Map();
-  private useSimulatedData: boolean = true; // Cambiar a false para usar APIs reales
+  private useSimulatedData: boolean = false; // Usar APIs reales con fallback a simulado
 
   constructor() {
     // Configurar límites de rate limiting

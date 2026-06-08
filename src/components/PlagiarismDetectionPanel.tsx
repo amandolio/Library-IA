@@ -15,6 +15,13 @@ interface SourceDocument {
   type: 'academic' | 'book' | 'web' | 'journal';
 }
 
+interface RepoStatus {
+  name: string;
+  status: 'pending' | 'ok' | 'error';
+  count: number;
+  latencyMs?: number;
+}
+
 const sourceDocuments: SourceDocument[] = [
   {
     id: 'source-1',
@@ -119,10 +126,85 @@ const typeColors: Record<PlagiarismType, string> = {
   'author_omission': 'bg-rose-50 border-rose-300'
 };
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+async function fetchLiveRepositoryDocs(text: string): Promise<{ sources: SourceDocument[]; statuses: RepoStatus[] }> {
+  const t0 = performance.now();
+  const statuses: RepoStatus[] = [
+    { name: 'CrossRef', status: 'pending', count: 0 },
+    { name: 'Semantic Scholar', status: 'pending', count: 0 },
+    { name: 'arXiv', status: 'pending', count: 0 },
+    { name: 'Open Library', status: 'pending', count: 0 },
+  ];
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    return { sources: [], statuses: statuses.map(s => ({ ...s, status: 'error' as const })) };
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/plagiarism-analysis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        text,
+        documentTitle: 'Análisis de Plagio',
+        language: 'auto',
+        method: 'hybrid',
+        checkRepositories: true,
+      }),
+    });
+
+    const latencyMs = Math.round(performance.now() - t0);
+
+    if (!res.ok) {
+      return { sources: [], statuses: statuses.map(s => ({ ...s, status: 'error' as const, latencyMs })) };
+    }
+
+    const data = await res.json();
+    const repoResults: Array<{ source: string; documents: Array<{ title: string; author: string; year: number; abstract: string; url: string; doi?: string }> }> = data.repositoryResults || [];
+
+    const updatedStatuses: RepoStatus[] = statuses.map(s => {
+      const repo = repoResults.find(r => r.source === s.name);
+      return {
+        ...s,
+        status: repo ? 'ok' as const : 'error' as const,
+        count: repo?.documents.length || 0,
+        latencyMs,
+      };
+    });
+
+    const sources: SourceDocument[] = repoResults.flatMap((repo, repoIdx) =>
+      repo.documents.map((doc, docIdx) => ({
+        id: `repo-${repoIdx}-${docIdx}`,
+        title: doc.title,
+        author: doc.author,
+        year: doc.year,
+        content: doc.abstract || doc.title,
+        url: doc.url,
+        doi: doc.doi,
+        language: 'en',
+        type: repo.source === 'Open Library' ? 'book' : 'academic' as 'academic' | 'book',
+      }))
+    );
+
+    return { sources, statuses: updatedStatuses };
+  } catch {
+    const latencyMs = Math.round(performance.now() - t0);
+    return { sources: [], statuses: statuses.map(s => ({ ...s, status: 'error' as const, latencyMs })) };
+  }
+}
+
 export function PlagiarismDetectionPanel() {
   const [inputText, setInputText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisPhase, setAnalysisPhase] = useState<'idle' | 'fetching' | 'analyzing'>('idle');
   const [report, setReport] = useState<PlagiarismReport | null>(null);
+  const [repoStatuses, setRepoStatuses] = useState<RepoStatus[]>([]);
+  const [liveSourceCount, setLiveSourceCount] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<'auto' | 'es' | 'en'>('auto');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfText, setPdfText] = useState('');
@@ -221,9 +303,20 @@ export function PlagiarismDetectionPanel() {
     setIsAnalyzing(true);
     setReport(null);
     setSaveStatus('idle');
+    setRepoStatuses([]);
+    setLiveSourceCount(0);
 
     try {
-      const result = await advancedPlagiarismDetector.analyzeFull(inputText, sourceDocuments);
+      // Phase 1: Fetch live repository documents
+      setAnalysisPhase('fetching');
+      const { sources: liveSources, statuses } = await fetchLiveRepositoryDocs(inputText);
+      setRepoStatuses(statuses);
+      setLiveSourceCount(liveSources.length);
+
+      // Phase 2: Run plagiarism analysis with local + live sources
+      setAnalysisPhase('analyzing');
+      const combinedSources = [...sourceDocuments, ...liveSources];
+      const result = await advancedPlagiarismDetector.analyzeFull(inputText, combinedSources);
       setReport(result);
 
       if (currentUser) {
@@ -242,6 +335,7 @@ export function PlagiarismDetectionPanel() {
       setSaveStatus('error');
     } finally {
       setIsAnalyzing(false);
+      setAnalysisPhase('idle');
     }
   };
 
@@ -401,25 +495,80 @@ export function PlagiarismDetectionPanel() {
       {isAnalyzing && (
         <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Analizando 10 tipos de plagio...</h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 max-w-2xl mx-auto text-xs text-gray-500">
-            <span className="p-2 bg-red-50 rounded">Directo</span>
-            <span className="p-2 bg-orange-50 rounded">Paráfrasis</span>
-            <span className="p-2 bg-purple-50 rounded">Ideas</span>
-            <span className="p-2 bg-yellow-50 rounded">Autoplagio</span>
-            <span className="p-2 bg-pink-50 rounded">Citas Fantasma</span>
-            <span className="p-2 bg-blue-50 rounded">Traducción</span>
-            <span className="p-2 bg-indigo-50 rounded">Estructura</span>
-            <span className="p-2 bg-teal-50 rounded">Datos</span>
-            <span className="p-2 bg-cyan-50 rounded">Metodología</span>
-            <span className="p-2 bg-rose-50 rounded">Omisión Autoría</span>
-          </div>
+          {analysisPhase === 'fetching' ? (
+            <>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Consultando repositorios científicos...</h3>
+              <div className="flex justify-center gap-3 mt-4 flex-wrap">
+                {['CrossRef', 'Semantic Scholar', 'arXiv', 'Open Library'].map(name => (
+                  <span key={name} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full text-xs text-blue-700">
+                    <Globe className="h-3 w-3 animate-pulse" />{name}
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Analizando 10 tipos de plagio...</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2 max-w-2xl mx-auto text-xs text-gray-500">
+                <span className="p-2 bg-red-50 rounded">Directo</span>
+                <span className="p-2 bg-orange-50 rounded">Paráfrasis</span>
+                <span className="p-2 bg-purple-50 rounded">Ideas</span>
+                <span className="p-2 bg-yellow-50 rounded">Autoplagio</span>
+                <span className="p-2 bg-pink-50 rounded">Citas Fantasma</span>
+                <span className="p-2 bg-blue-50 rounded">Traducción</span>
+                <span className="p-2 bg-indigo-50 rounded">Estructura</span>
+                <span className="p-2 bg-teal-50 rounded">Datos</span>
+                <span className="p-2 bg-cyan-50 rounded">Metodología</span>
+                <span className="p-2 bg-rose-50 rounded">Omisión Autoría</span>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* Results */}
       {!isAnalyzing && report && (
         <div className="space-y-6">
+          {/* Repository Status Panel */}
+          {repoStatuses.length > 0 && (
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+              <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
+                <Server className="h-4 w-4 mr-2 text-blue-500" />
+                Repositorios Científicos Consultados
+                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                  {liveSourceCount} documentos recuperados
+                </span>
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {repoStatuses.map(repo => (
+                  <div key={repo.name} className={`flex items-center justify-between p-3 rounded-lg border ${
+                    repo.status === 'ok' ? 'bg-green-50 border-green-200' :
+                    repo.status === 'error' ? 'bg-red-50 border-red-200' :
+                    'bg-gray-50 border-gray-200'
+                  }`}>
+                    <div className="flex items-center space-x-2 min-w-0">
+                      {repo.status === 'ok'
+                        ? <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        : repo.status === 'error'
+                        ? <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        : <div className="h-4 w-4 rounded-full border-2 border-gray-400 animate-spin flex-shrink-0" />
+                      }
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{repo.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {repo.status === 'ok' ? `${repo.count} docs` :
+                           repo.status === 'error' ? 'Sin conexión' : 'Esperando...'}
+                        </p>
+                      </div>
+                    </div>
+                    {repo.latencyMs !== undefined && repo.status === 'ok' && (
+                      <span className="text-xs text-gray-400 ml-1 flex-shrink-0">{repo.latencyMs}ms</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Overall Statistics */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
@@ -481,7 +630,7 @@ export function PlagiarismDetectionPanel() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Fuentes analizadas:</span>
-                    <span className="font-semibold">{report.sourcesChecked}</span>
+                    <span className="font-semibold">{report.sourcesChecked} ({liveSourceCount} en vivo)</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Citas verificadas:</span>
