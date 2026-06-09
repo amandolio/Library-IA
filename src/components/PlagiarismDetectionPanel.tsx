@@ -824,6 +824,502 @@ const sourceDocuments: SourceDocument[] = [
     language: 'en',
     type: 'book'
   },
+  // ==================== REDES NEURONALES Y DEEP LEARNING ====================
+  {
+    id: 'nn-001',
+    title: 'Neural Networks and Deep Learning: A Textbook',
+    author: 'Charu Aggarwal',
+    year: 2018,
+    content: 'Neural networks are computational models inspired by biological neural networks in the human brain. A perceptron is the simplest neural network consisting of a single neuron with adjustable weights. Multilayer perceptrons contain hidden layers between input and output, enabling learning of non-linear functions. Backpropagation computes gradients by applying the chain rule from the output layer backward through the network. Activation functions like sigmoid, tanh, and ReLU introduce non-linearity.',
+    url: 'https://link.springer.com/book/10.1007/978-3-319-94463-0',
+    doi: '10.1007/978-3-319-94463-0',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'nn-002',
+    title: 'Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow',
+    author: 'Aurelion Geuron',
+    year: 2022,
+    content: 'Machine learning pipelines typically involve data cleaning, feature engineering, model selection, and evaluation. Scikit-learn provides tools for preprocessing, dimensionality reduction, and classical algorithms like random forests and support vector machines. Keras and TensorFlow enable building neural networks with high-level APIs. Convolutional neural networks excel at image recognition by learning hierarchical features. Recurrent neural networks process sequential data through internal state.',
+    url: 'https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/',
+    doi: '10.5555/3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'nn-003',
+    title: 'Recurrent Neural Networks: Design and Applications',
+    author: 'Alex Graves',
+    year: 2012,
+    content: 'Recurrent neural networks process sequential information by maintaining hidden state that captures context from previous inputs. Long short-term memory networks address the vanishing gradient problem through gating mechanisms that control information flow. The forget gate determines what information to discard. The input gate controls what new information to store. The output gate determines what hidden state to output. LSTMs excel at tasks like language modeling, speech recognition, and machine translation.',
+    url: 'https://link.springer.com/chapter/10.1007/978-3-642-24797-2_4',
+    doi: '10.1007/978-3-642-24797-2_4',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'nn-004',
+    title: 'Batch Normalization: Accelerating Deep Network Training',
+    author: 'Sergey Ioffe, Christian Szegedy',
+    year: 2015,
+    content: 'Training deep neural networks is complicated by the internal covariate shift, where the distribution of each layer inputs changes during training. Batch normalization addresses this by normalizing layer inputs to have zero mean and unit variance for each mini-batch. This allows higher learning rates, reduces dependence on initialization, and acts as a regularizer. The network learns scale and shift parameters to restore representational capacity.',
+    url: 'https://arxiv.org/abs/1502.03167',
+    doi: '10.48550/arXiv.1502.03167',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'nn-005',
+    title: 'Layer Normalization',
+    author: 'Jimmy Lei Ba, Jamie Ryan Kiros, Geoffrey Hinton',
+    year: 2016,
+    content: 'Layer normalization is a normalization technique designed for feed-forward neural networks and recurrent neural networks. Unlike batch normalization which operates on batches, layer normalization normalizes across features for each training case independently. This makes it effective for small batch sizes and sequence models. Layer norm computes mean and variance from all hidden units in a layer, then normalizes the summed inputs to each neuron.',
+    url: 'https://arxiv.org/abs/1607.06450',
+    doi: '10.48550/arXiv.1607.06450',
+    language: 'en',
+    type: 'academic'
+  },
+  // ==================== PROCESAMIENTO DE LENGUAJE NATURAL ====================
+  {
+    id: 'nlp-001',
+    title: 'Speech and Language Processing',
+    author: 'Dan Jurafsky, James Martin',
+    year: 2024,
+    content: 'Natural language processing enables computers to understand, interpret, and generate human language. Word embeddings represent words as dense vectors in continuous space, capturing semantic relationships. Word2Vec learns embeddings by predicting context words. GloVe combines global matrix factorization with local context windows. Language models estimate the probability of word sequences and are fundamental for speech recognition, machine translation, and text generation.',
+    url: 'https://web.stanford.edu/~jurafsky/slp3/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'nlp-002',
+    title: 'Foundations of Statistical Natural Language Processing',
+    author: 'Christopher Manning, Hinrich Schutze',
+    year: 1999,
+    content: 'Statistical methods have revolutionized natural language processing by enabling learning from large corpora. Part-of-speech tagging assigns grammatical categories to words using hidden Markov models or conditional random fields. Named entity recognition identifies mentions of people, organizations, and locations. Syntactic parsing constructs parse trees showing grammatical structure. The noisy channel model provides a framework for spelling correction and machine translation.',
+    url: 'https://nlp.stanford.edu/fsnlp/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'nlp-003',
+    title: 'Sequence to Sequence Learning with Neural Networks',
+    author: 'Ilya Sutskever, Oriol Vinyals, Quoc Le',
+    year: 2014,
+    content: 'Sequence-to-sequence models map input sequences to output sequences of potentially different lengths. The encoder processes the input sequence into a fixed-length context vector. The decoder generates the output sequence conditioned on this context. This architecture revolutionized machine translation and became foundational for neural text generation. Beam search improves output quality by keeping multiple hypotheses during decoding.',
+    url: 'https://arxiv.org/abs/1409.3215',
+    doi: '10.48550/arXiv.1409.3215',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'nlp-004',
+    title: 'Neural Machine Translation by Jointly Learning to Align and Translate',
+    author: 'Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio',
+    year: 2015,
+    content: 'Encoding a source sequence into a fixed-length vector creates a bottleneck for long sentences. Attention mechanisms allow the decoder to focus on different parts of the source sentence dynamically. The attention weight for each source position is computed by comparing the decoder hidden state with each encoder hidden state. This enables the model to learn soft alignment between source and target words. Attention has become essential for modern sequence-to-sequence models.',
+    url: 'https://arxiv.org/abs/1409.0473',
+    doi: '10.48550/arXiv.1409.0473',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'nlp-005',
+    title: 'Word2Vec: Efficient Estimation of Word Representations in Vector Space',
+    author: 'Tomas Mikolov, Kai Chen, Greg Corrado, Jeffrey Dean',
+    year: 2013,
+    content: 'Distributed word representations capture semantic and syntactic information in continuous vector space. Skip-gram predicts context words given a target word. Continuous bag-of-words predicts the target word from context. Negative sampling simplifies training by sampling negative examples rather than computing the full softmax. Word vectors exhibit algebraic relationships: vector(king) - vector(man) + vector(woman) approximate vector(queen).',
+    url: 'https://arxiv.org/abs/1301.3781',
+    doi: '10.48550/arXiv.1301.3781',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'nlp-006',
+    title: 'GloVe: Global Vectors for Word Representation',
+    author: 'Jeffrey Pennington, Richard Socher, Christopher Manning',
+    year: 2014,
+    content: 'GloVe combines the advantages of global matrix factorization and local context window methods. The model trains on word co-occurrence statistics from the entire corpus. Co-occurrence probabilities capture semantic relationships between words. The objective function weights co-occurrence counts to balance frequent and rare words. The resulting embeddings capture analogies, similarity, and other semantic relationships effectively.',
+    url: 'https://nlp.stanford.edu/projects/glove/',
+    doi: '10.48550/arXiv.1409.0473',
+    language: 'en',
+    type: 'academic'
+  },
+  // ==================== VISION POR COMPUTADORA ====================
+  {
+    id: 'cv-001',
+    title: 'Computer Vision: Algorithms and Applications',
+    author: 'Richard Szeliski',
+    year: 2022,
+    content: 'Computer vision enables machines to derive meaningful information from images and video. Image processing operations include filtering, edge detection, and feature extraction. Feature matching identifies corresponding points between images for alignment and recognition. Segmentation partitions images into meaningful regions. Object detection localizes and classifies objects within images. 3D reconstruction recovers scene geometry from multiple views.',
+    url: 'https://szeliski.org/Book/',
+    doi: '10.1007/978-3-030-34215-1',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'cv-002',
+    title: 'Feature Extraction with SIFT',
+    author: 'David Lowe',
+    year: 2004,
+    content: 'Scale-invariant feature transform detects distinctive keypoints in images that are invariant to scale, rotation, and illumination changes. SIFT constructs a scale-space pyramid by repeatedly smoothing and downsampling the image. Keypoints are identified as local extrema in scale-space. Orientation assignment provides rotation invariance. A 128-dimensional descriptor captures local gradient information around each keypoint. SIFT features enable robust matching across viewpoint changes.',
+    url: 'https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf',
+    doi: '10.1023/B:VISI.0000029664.99615.94',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'cv-003',
+    title: 'Histogram of Oriented Gradients for Human Detection',
+    author: 'Navneet Dalal, Bill Triggs',
+    year: 2005,
+    content: 'Histogram of oriented gradients represents image regions by local shape information. The image is divided into small cells. For each cell, a histogram of gradient orientations is computed. The descriptor concatenates normalized histograms from overlapping blocks of cells. HOG features capture edge distribution and are particularly effective for pedestrian detection. The descriptor is invariant to small translations and illumination changes.',
+    url: 'https://lear.inrialpes.fr/people/triggs/pubs/Dalal-cvpr05.pdf',
+    doi: '10.1109/CVPR.2005.177',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'cv-004',
+    title: 'YOLO: Unified, Real-Time Object Detection',
+    author: 'Joseph Redmon, Santosh Divvala, Ross Girshick, Ali Farhadi',
+    year: 2016,
+    content: 'You Only Look Once reframes object detection as a single regression problem. The image is divided into a grid, and each grid cell predicts bounding boxes and class probabilities directly. The model processes the entire image at once, enabling real-time performance. Non-maximum suppression removes duplicate predictions. YOLO achieves high detection speed while maintaining competitive accuracy compared to region-based detectors.',
+    url: 'https://arxiv.org/abs/1506.02640',
+    doi: '10.1109/CVPR.2016.91',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'cv-005',
+    title: 'FCN: Fully Convolutional Networks for Semantic Segmentation',
+    author: 'Jonathan Long, Evan Shelhamer, Trevor Darrell',
+    year: 2015,
+    content: 'Fully convolutional networks replace fully connected layers with convolutional layers to output spatial maps instead of classification scores. Upsampling by learned deconvolution restores spatial resolution. Skip connections combine coarse semantic information from deep layers with fine appearance information from shallow layers. This architecture enables end-to-end learning for semantic segmentation where each pixel is classified.',
+    url: 'https://arxiv.org/abs/1411.4038',
+    doi: '10.1109/CVPR.2015.7298645',
+    language: 'en',
+    type: 'academic'
+  },
+  // ==================== REFORZAMIENTO APRENDIZAJE ====================
+  {
+    id: 'rl-001',
+    title: 'Reinforcement Learning: An Introduction',
+    author: 'Richard Sutton, Andrew Barto',
+    year: 2018,
+    content: 'Reinforcement learning is learning what to do to maximize a numerical reward signal. An agent interacts with an environment, taking actions and receiving rewards. The goal is to learn a policy that maps states to actions maximizing cumulative reward. Markov decision processes provide the mathematical framework. Value functions estimate expected cumulative reward from states or state-action pairs. Q-learning learns action values without requiring a model of the environment.',
+    url: 'https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'rl-002',
+    title: 'Policy Gradient Methods for Reinforcement Learning',
+    author: 'Richard Sutton, David McAllester, Satinder Singh, Yishay Mansour',
+    year: 2000,
+    content: 'Policy gradient methods optimize the policy directly by estimating the gradient of expected return with respect to policy parameters. REINFORCE uses sample returns to estimate the gradient. Actor-critic methods combine value function approximation with policy gradient for variance reduction. The policy gradient theorem provides the foundation for methods that differentiate through stochastic policies.',
+    url: 'https://proceedings.neurips.cc/paper/1999/file/464d828b85b0bed98e80ade0a5c43b0f-Paper.pdf',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'rl-003',
+    title: 'Proximal Policy Optimization Algorithms',
+    author: 'John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford',
+    year: 2017,
+    content: 'Proximal policy optimization constrains policy updates to avoid large destabilizing changes. A clipped surrogate objective limits how much the policy can change in each update. This approach strikes a balance between ease of implementation, sample efficiency, and ease of tuning. PPO has become one of the most popular reinforcement learning algorithms for continuous control and game playing.',
+    url: 'https://arxiv.org/abs/1707.06347',
+    doi: '10.48550/arXiv.1707.06347',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'rl-004',
+    title: 'Deep Q-Network: Human-Level Control Through Deep Reinforcement Learning',
+    author: 'Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Andrei Rusu',
+    year: 2015,
+    content: 'Deep Q-network combines reinforcement learning with deep neural networks to learn successful policies from high-dimensional sensory input. Experience replay stores transitions and samples mini-batches for training, breaking correlation in sequential data. A separate target network provides stable targets for Q-learning updates. Frame stacking captures temporal context for Atari games. DQN achieved human-level performance on many Atari games.',
+    url: 'https://www.nature.com/articles/nature14236',
+    doi: '10.1038/nature14236',
+    language: 'en',
+    type: 'academic'
+  },
+  // ==================== COMPUTO DISTRIBUIDO Y CLOUD ====================
+  {
+    id: 'cloud-001',
+    title: 'Designing the Cloud: A Guide for Architects',
+    author: 'Bill Wilder',
+    year: 2012,
+    content: 'Cloud computing provides on-demand computing resources over the internet with pay-as-you-go pricing. Infrastructure as a service offers virtual machines, storage, and networking. Platform as a service provides managed runtime environments for applications. Software as a service delivers applications through web browsers. Cloud elasticity enables automatic scaling based on demand. High availability requires redundancy across multiple availability zones.',
+    url: 'https://www.oreilly.com/library/view/designing-the-cloud/9781449341918/',
+    doi: '10.5555=2773144',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'cloud-002',
+    title: 'Building Microservices: Designing Fine-Grained Systems',
+    author: 'Sam Newman',
+    year: 2021,
+    content: 'Microservices architecture structures applications as a collection of loosely coupled, independently deployable services. Each service focuses on a single business capability. Services communicate through APIs, typically REST or message queues. Decentralized governance allows teams to choose appropriate technologies. Data management involves eventual consistency and sagas. Containers package services with their dependencies for consistent deployment.',
+    url: 'https://www.oreilly.com/library/view/building-microservices-2nd/9781492033349/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'cloud-003',
+    title: 'Kubernetes: Up and Running',
+    author: 'Kelsey Hightower, Brendan Burns, Joe Beda',
+    year: 2019,
+    content: 'Kubernetes is an open-source container orchestration platform for automating deployment, scaling, and management of containerized applications. Pods are the smallest deployable units containing one or more containers. Services provide stable network endpoints for accessing pods. Deployments manage replica sets and enable rollouts and rollbacks. Config maps and secrets externalize configuration. Namespaces provide isolation within a cluster.',
+    url: 'https://www.oreilly.com/library/view/kubernetes-up-and/9781492046523/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'cloud-004',
+    title: 'MapReduce: Simplified Data Processing on Large Clusters',
+    author: 'Jeffrey Dean, Sanjay Ghemawat',
+    year: 2008,
+    content: 'MapReduce is a programming model and implementation for processing large data sets in parallel across a cluster. Users specify a map function that processes key-value pairs to generate intermediate pairs. A reduce function merges all intermediate values associated with the same intermediate key. The runtime handles partitioning, scheduling, fault tolerance, and load balancing. MapReduce has been foundational for big data processing systems.',
+    url: 'https://research.google/pubs/pub62/',
+    doi: '10.1145/1327452.1327492',
+    language: 'en',
+    type: 'academic'
+  },
+  {
+    id: 'cloud-005',
+    title: 'The Google File System',
+    author: 'Sanjay Ghemawat, Howard Gobioff, Shun-Tak Leung',
+    year: 2003,
+    content: 'The Google File System is a scalable distributed file system for large data-intensive applications. It provides fault tolerance by replicating files across multiple chunkservers. A single master maintains metadata and coordinates system operations. Files are divided into fixed-size chunks stored as regular files on chunkservers. Atomic record appends enable multiple clients to append to the same file concurrently. GFS inspired later distributed storage systems.',
+    url: 'https://research.google/pubs/pub51/',
+    doi: '10.1145/945445.945450',
+    language: 'en',
+    type: 'academic'
+  },
+  // ==================== ARQUITECTURA DE COMPUTADORES ====================
+  {
+    id: 'arch-001',
+    title: 'Computer Architecture: A Quantitative Approach',
+    author: 'John Hennessy, David Patterson',
+    year: 2017,
+    content: 'Computer architecture is the design and organization of computer systems. The instruction set architecture defines the interface between hardware and software. Pipelining overlaps instruction execution to improve throughput. Cache hierarchies reduce memory latency by exploiting locality. Branch prediction mitigates pipeline stalls from conditional branches. Out-of-order execution extracts instruction-level parallelism dynamically. Multicore processors provide thread-level parallelism.',
+    url: 'https://www.elsevier.com/books/computer-architecture/hennessy/978-0-12-811905-1',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'arch-002',
+    title: 'Computer Organization and Design: The Hardware/Software Interface',
+    author: 'David Patterson, John Hennessy',
+    year: 2020,
+    content: 'The hardware-software interface defines how processors execute programs. The von Neumann architecture stores programs and data in the same memory. Assembly language provides a human-readable representation of machine instructions. Arithmetic logic units perform basic operations on binary numbers. Control units fetch, decode, and execute instructions. Memory hierarchies combine registers, caches, main memory, and storage to balance cost and performance.',
+    url: 'https://www.elsevier.com/books/computer-organization-and-design-patterson/978-0-12-811905-1',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'arch-003',
+    title: 'Parallel Computer Architecture: A Hardware/Software Approach',
+    author: 'David Culler, Jaswinder Singh, Anoop Gupta',
+    year: 1998,
+    content: 'Parallel computing uses multiple processors to solve problems faster than a single processor. Shared memory multiprocessors provide a single address space accessible to all processors. Distributed memory systems have private memory per processor and communicate through message passing. Cache coherence protocols maintain consistency across caches in shared memory systems. Synchronization primitives like locks and barriers coordinate parallel execution.',
+    url: 'https://books.google.com/books?id=KSl6AAAAMAAJ',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  // ==================== COMPILADORES ====================
+  {
+    id: 'comp-001',
+    title: 'Compilers: Principles, Techniques, and Tools',
+    author: 'Alfred Aho, Monica Lam, Ravi Sethi, Jeffrey Ullman',
+    year: 2006,
+    content: 'A compiler translates source code from a high-level language to machine code or intermediate representation. Lexical analysis groups characters into tokens. Syntax parsing constructs abstract syntax trees from token sequences. Semantic analysis checks type consistency and scope rules. Optimization transforms code to improve performance while preserving semantics. Code generation produces target machine instructions. Symbol tables track identifiers and their attributes.',
+    url: 'https://suif.stanford.edu/dragonbook/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'comp-002',
+    title: 'Engineering a Compiler',
+    author: 'Keith Cooper, Linda Torczon',
+    year: 2011,
+    content: 'Modern compiler design balances compilation speed, code quality, and engineering complexity. Intermediate representations enable optimization across different phases. Control flow graphs model program execution paths for analysis. Data flow analysis computes liveness, available expressions, and other properties. Register allocation maps virtual registers to a limited set of hardware registers. Instruction selection chooses machine instructions to implement IR operations.',
+    url: 'https://www.elsevier.com/books/engineering-a-compiler/cooper/978-0-12-088478-0',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'comp-003',
+    title: 'Modern Compiler Implementation in ML',
+    author: 'Andrew Appel',
+    year: 1998,
+    content: 'Functional programming languages provide elegant abstractions for compiler construction. Abstract syntax trees represent program structure in a type-safe manner. Pattern matching simplifies tree traversals and transformations. Continuation-passing style transforms control flow into explicit data structures. Garbage collection enables automatic memory management for the compiler itself. Type systems for compiler intermediate languages catch bugs at compile time.',
+    url: 'https://www.cs.princeton.edu/~appel/modern/ml/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  // ==================== TEORIA DE LA COMPUTACION ====================
+  {
+    id: 'theory-001',
+    title: 'Introduction to the Theory of Computation',
+    author: 'Michael Sipser',
+    year: 2012,
+    content: 'The theory of computation studies what can and cannot be computed by machines. Finite automata model systems with finite memory, recognizing regular languages. Pushdown automata add a stack, recognizing context-free languages. Turing machines provide a mathematical model of computation. The Church-Turing thesis asserts that Turing machines capture the intuitive notion of computability. Decidability and reducibility characterize problems that can be solved algorithmically.',
+    url: 'https://www.cengage.com/c/introduction-to-the-theory-of-computation-3e-sipser/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'theory-002',
+    title: 'Computational Complexity: A Modern Approach',
+    author: 'Sanjeev Arora, Boaz Barak',
+    year: 2009,
+    content: 'Computational complexity studies the resources required to solve computational problems. P contains problems solvable in polynomial time. NP contains problems whose solutions can be verified in polynomial time. NP-completeness identifies the hardest problems in NP through reductions. Space complexity measures memory requirements. Randomized algorithms use randomness for efficiency. Interactive proofs enable verification through conversation. Hardness of approximation classifies optimization problems.',
+    url: 'https://theory.cs.princeton.edu/complexity/',
+    doi: '10.1017/CBO9780511804090',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'theory-003',
+    title: 'Introduction to Automata Theory, Languages, and Computation',
+    author: 'John Hopcroft, Rajeev Motwani, Jeffrey Ullman',
+    year: 2006,
+    content: 'Formal languages are sets of strings defined by grammars or automata. Regular expressions describe patterns using concatenation, union, and closure. Deterministic and nondeterministic finite automata recognize exactly the regular languages. Context-free grammars describe programming language syntax through production rules. Chomsky normal form simplifies parsing algorithms. The pumping lemma provides a tool for proving languages are not regular or context-free.',
+    url: 'https://www.pearson.com/store/p/introduction-to-automata-theory-languages-and-computation/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  // ==================== GRAFICAS COMPUTACIONALES ====================
+  {
+    id: 'graphics-001',
+    title: 'Computer Graphics: Principles and Practice',
+    author: 'John Hughes, Andries van Dam, Morgan McGuire, David Sklar',
+    year: 2013,
+    content: 'Computer graphics generates images from geometric models and scene descriptions. Rendering computes light transport from light sources through surfaces to the camera. Rasterization converts geometric primitives into pixel colors. Ray tracing computes light paths by casting rays through pixels. Shading models calculate surface appearance based on light, material, and viewing direction. Texture mapping adds detail without geometric complexity. Animation creates the illusion of motion through sequences of frames.',
+    url: 'https://cgpp.net/about.xml',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'graphics-002',
+    title: 'Real-Time Rendering',
+    author: 'Tomas Akenine-Moller, Eric Haines, Naty Hoffman',
+    year: 2018,
+    content: 'Real-time rendering generates images fast enough for interactive applications. The graphics pipeline transforms vertices, rasterizes primitives, and processes fragments. Shaders are programs running on the GPU that implement transformations, lighting, and effects. Shadow mapping renders shadows by projecting depths from the light view. Deferred shading separates geometry passes from lighting passes for many lights. Post-processing effects apply filters after rendering.',
+    url: 'https://www.realtimerendering.com/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'graphics-003',
+    title: 'Physically Based Rendering: From Theory to Implementation',
+    author: 'Matt Pharr, Wenzel Jakob, Greg Humphreys',
+    year: 2016,
+    content: 'Physically based rendering simulates light transport to create realistic images. The rendering equation describes energy equilibrium between surfaces. Monte Carlo integration estimates global illumination through sampling. Path tracing traces random light paths accumulating radiance. Bidirectional methods trace paths from both lights and the camera. Importance sampling focuses computation on important regions. Denoising reduces Monte Carlo noise while preserving detail.',
+    url: 'https://pbr-book.org/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  // ==================== SISTEMAS EMBEBIDOS ====================
+  {
+    id: 'embedded-001',
+    title: 'Embedded Systems: Architecture, Programming and Design',
+    author: 'Raj Kamal',
+    year: 2008,
+    content: 'Embedded systems are computer systems designed for specific functions within larger systems. Microcontrollers integrate processor, memory, and peripherals on a single chip. Real-time constraints require predictable timing for critical operations. Interrupts handle external events by suspending normal execution. Power management reduces energy consumption through sleep modes and clock scaling. Memory-mapped I/O uses the same address space for memory and device registers.',
+    url: 'https://www.mheducation.com/highered/product/embedded-systems-architecture-programming-and-design-kamal/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'embedded-002',
+    title: 'Real-Time Systems',
+    author: 'Jane Liu',
+    year: 2000,
+    content: 'Real-time systems must produce correct results within specified timing constraints. Hard real-time deadlines must always be met to avoid catastrophic failures. Soft real-time systems tolerate occasional deadline misses. Rate monotonic scheduling assigns priority inversely proportional to period. Earliest deadline first schedules the nearest deadline first. Priority inheritance prevents priority inversion in resource sharing.',
+    url: 'https://www.oreilly.com/library/view/real-time-systems/9780763725622/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  // ==================== COMPUTO CUANTICO ====================
+  {
+    id: 'quantum-001',
+    title: 'Quantum Computation and Quantum Information',
+    author: 'Michael Nielsen, Isaac Chuang',
+    year: 2010,
+    content: 'Quantum computing harnesses quantum mechanical phenomena for computation. Qubits are quantum bits that exist in superposition of zero and one. Quantum entanglement creates correlations between qubits enabling parallel computation. Quantum gates apply unitary transformations to qubits. Quantum algorithms like Shors algorithm factor integers exponentially faster than classical algorithms. Grovers algorithm provides quadratic speedup for unstructured search. Quantum error correction protects quantum states from decoherence.',
+    url: 'https://michaelnielsen.org/qcqi/',
+    doi: '10.1017/CBO9780511976667',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'quantum-002',
+    title: 'Programming Quantum Computers: Essential Algorithms and Code Samples',
+    author: 'Eric Johnson, Nic Harrigan, Mercedes Gimeno-Segovia',
+    year: 2019,
+    content: 'Quantum programming languages express quantum circuits and algorithms. Quantum circuits apply gates in sequence to initialize, transform, and measure qubits. The Hadamard gate creates superposition states. CNOT gates create entanglement between qubits. Quantum teleportation transfers quantum states using entanglement. Variational quantum eigensolvers solve chemistry problems near-term. Quantum simulators run quantum algorithms on classical computers.',
+    url: 'https://www.oreilly.com/library/view/programming-quantum-computers/9781492039456/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  // ==================== ETHICS AND SOCIETY ====================
+  {
+    id: 'ethics-001',
+    title: 'Weapons of Math Destruction: How Big Data Increases Inequality and Threatens Democracy',
+    author: 'Cathy ONeil',
+    year: 2016,
+    content: 'Algorithms increasingly influence important decisions about credit, employment, and criminal justice. Weapons of math destruction are algorithms that are opaque, harmful to many people, and difficult to contest. Feedback loops reinforce existing biases when models use proxies for protected characteristics. Algorithmic auditing can reveal disparate impact across demographic groups. Transparency and accountability are essential for responsible AI deployment.',
+    url: 'https://www.penguinrandomhouse.com/books/242361/weapons-of-math-destruction-by-cathy-oneil/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'ethics-002',
+    title: 'Human Compatible: Artificial Intelligence and the Problem of Control',
+    author: 'Stuart Russell',
+    year: 2019,
+    content: 'AI systems need to be designed to be beneficial to humans. The alignment problem concerns ensuring AI systems pursue goals aligned with human values. Inverse reinforcement learning infers human preferences from observed behavior. Assistive AI systems help humans make better decisions while keeping humans in the loop. Provably beneficial AI requires formalizing human preferences and uncertainty about those preferences in the AI system.',
+    url: 'https://www.penguinrandomhouse.com/books/598863/human-compatible-by-stuart-russell/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
+  {
+    id: 'ethics-003',
+    title: 'Fairness and Machine Learning: Limitations and Opportunities',
+    author: 'Solon Barocas, Moritz Hardt, Arvind Narayanan',
+    year: 2019,
+    content: 'Fairness in machine learning concerns preventing discriminatory outcomes. Statistical parity requires equal positive prediction rates across groups. Equalized odds requires equal true positive and false positive rates across groups. Fairness constraints can conflict with accuracy in some scenarios. Dataset bias can propagate bias into trained models. Counterfactual fairness considers whether outcomes would differ if an individual belonged to a different group.',
+    url: 'https://fairmlbook.org/',
+    doi: '10.5555=3345029',
+    language: 'en',
+    type: 'book'
+  },
 ];
 
 const sampleTexts = [
