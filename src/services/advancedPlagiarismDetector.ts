@@ -69,6 +69,11 @@ class AdvancedPlagiarismDetector {
   private readonly MIN_IDEA_SIMILARITY = 0.5;
   private readonly MIN_STRUCTURE_SIMILARITY = 0.6;
 
+  // Cache for precomputed values (cleared per analysis)
+  private normalizeCache = new Map<string, string>();
+  private ngramCache = new Map<string, Set<string>>();
+  private tfidfCache = new Map<string, Map<string, number>>();
+
   private getSupabase() {
     if (!this.supabase) {
       const url = import.meta.env.VITE_SUPABASE_URL;
@@ -80,11 +85,22 @@ class AdvancedPlagiarismDetector {
 
   // ========== TEXT PREPROCESSING ==========
   private normalizeText(text: string): string {
-    return text.toLowerCase()
+    const cached = this.normalizeCache.get(text);
+    if (cached) return cached;
+    const result = text.toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^\p{L}\p{N}\s]/gu, ' ')
       .replace(/\s+/g, ' ')
       .trim();
+    this.normalizeCache.set(text, result);
+    return result;
+  }
+
+  // Clear caches between analyses
+  clearCaches() {
+    this.normalizeCache.clear();
+    this.ngramCache.clear();
+    this.tfidfCache.clear();
   }
 
   private tokenize(text: string): string[] {
@@ -211,26 +227,42 @@ class AdvancedPlagiarismDetector {
 
   // ========== 2. PARAPHRASE DETECTION (TF-IDF + Cosine Similarity) ==========
   detectParaphrase(text: string, sources: SourceDocument[]): PlagiarismMatch[] {
+    return this.detectParaphraseOptimized(text, this.sentences(text), sources);
+  }
+
+  // Optimized version using precomputed sentences
+  private detectParaphraseOptimized(text: string, textSentences: string[], sources: SourceDocument[]): PlagiarismMatch[] {
+    const corpus = [text, ...sources.map(s => s.content)];
     const matches: PlagiarismMatch[] = [];
-    const sentences = this.sentences(text);
 
     for (const source of sources) {
       const sourceSentences = this.sentences(source.content);
 
-      for (let i = 0; i < sentences.length; i++) {
-        const sent = sentences[i].trim();
-        if (sent.split(/\s+/).length < 6) continue; // Skip short sentences
+      for (let i = 0; i < textSentences.length; i++) {
+        const sent = textSentences[i].trim();
+        if (sent.split(/\s+/).length < 6) continue;
 
-        const sentTfidf = this.computeTFIDF(sent, [text, ...sources.map(s => s.content)]);
+        const sentKey = `sent-${sent.substring(0, 50)}`;
+        let sentTfidf = this.tfidfCache.get(sentKey);
+        if (!sentTfidf) {
+          sentTfidf = this.computeTFIDF(sent, corpus);
+          this.tfidfCache.set(sentKey, sentTfidf);
+        }
+
         let bestSimilarity = 0;
         let bestMatch = '';
 
         for (const srcSent of sourceSentences) {
           if (srcSent.trim().split(/\s+/).length < 6) continue;
 
-          const srcTfidf = this.computeTFIDF(srcSent, [text, ...sources.map(s => s.content)]);
-          const similarity = this.cosineSimilarity(sentTfidf, srcTfidf);
+          const srcKey = `src-${srcSent.substring(0, 50)}`;
+          let srcTfidf = this.tfidfCache.get(srcKey);
+          if (!srcTfidf) {
+            srcTfidf = this.computeTFIDF(srcSent, corpus);
+            this.tfidfCache.set(srcKey, srcTfidf);
+          }
 
+          const similarity = this.cosineSimilarity(sentTfidf, srcTfidf);
           if (similarity > bestSimilarity) {
             bestSimilarity = similarity;
             bestMatch = srcSent;
@@ -317,12 +349,15 @@ class AdvancedPlagiarismDetector {
   }
 
   // ========== 3. IDEA PLAGIARISM (Named Entities + Concept Graphs) ==========
+  // ========== 3. IDEA PLAGIARISM (Named Entities + Concept Graphs) ==========
   detectIdeaPlagiarism(text: string, sources: SourceDocument[]): PlagiarismMatch[] {
-    const matches: PlagiarismMatch[] = [];
-
-    // Extract entities and concepts from text
     const textEntities = this.extractEntities(text);
     const textConcepts = this.extractConcepts(text);
+    return this.detectIdeaPlagiarismOptimized(text, textEntities, textConcepts, sources);
+  }
+
+  private detectIdeaPlagiarismOptimized(text: string, textEntities: Set<string>, textConcepts: Set<string>, sources: SourceDocument[]): PlagiarismMatch[] {
+    const matches: PlagiarismMatch[] = [];
 
     for (const source of sources) {
       const sourceEntities = this.extractEntities(source.content);
@@ -954,6 +989,11 @@ class AdvancedPlagiarismDetector {
 
   // ========== 10. AUTHOR OMISSION PLAGIARISM ==========
   detectAuthorOmission(text: string, sources: SourceDocument[]): PlagiarismMatch[] {
+    const textKeywords = this.extractKeywords(text);
+    return this.detectAuthorOmissionOptimized(text, textKeywords, sources);
+  }
+
+  private detectAuthorOmissionOptimized(text: string, textKeywords: Set<string>, sources: SourceDocument[]): PlagiarismMatch[] {
     const matches: PlagiarismMatch[] = [];
 
     // Check for citations to sources with high similarity
@@ -966,13 +1006,10 @@ class AdvancedPlagiarismDetector {
     }
 
     for (const source of sources) {
-      // Check overall semantic similarity
-      const textKeywords = this.extractKeywords(text);
       const sourceKeywords = this.extractKeywords(source.content);
       const similarity = this.setOverlap(textKeywords, sourceKeywords);
 
       if (similarity >= 0.3) {
-        // Check if the source author is cited
         const sourceAuthorParts = source.author.toLowerCase().split(/[,&]/);
         const isCited = sourceAuthorParts.some(part =>
           citedAuthors.has(part.trim().split(' ').pop() || '')
@@ -1010,9 +1047,20 @@ class AdvancedPlagiarismDetector {
     authorName?: string
   ): Promise<PlagiarismReport> {
     const t0 = performance.now();
+    this.clearCaches(); // Clear caches at start of each analysis
     const totalWords = this.extractWords(text).length;
 
-    // Run all detection methods
+    // Pre-normalize text once
+    const textNormalized = this.normalizeText(text);
+    const textTokens = this.tokenize(text);
+    const textSentences = this.sentences(text);
+
+    // Pre-compute text features for reuse
+    const textKeywords = this.extractKeywords(text);
+    const textEntities = this.extractEntities(text);
+    const textConcepts = this.extractConcepts(text);
+
+    // Run detection methods in parallel with precomputed features
     const [
       directMatches,
       paraphraseMatches,
@@ -1026,15 +1074,15 @@ class AdvancedPlagiarismDetector {
       omissionMatches
     ] = await Promise.all([
       Promise.resolve(this.detectDirectPlagiarism(text, sources)),
-      Promise.resolve(this.detectParaphrase(text, sources)),
-      Promise.resolve(this.detectIdeaPlagiarism(text, sources)),
+      Promise.resolve(this.detectParaphraseOptimized(text, textSentences, sources)),
+      Promise.resolve(this.detectIdeaPlagiarismOptimized(text, textEntities, textConcepts, sources)),
       Promise.resolve(this.detectSelfPlagiarism(text, sources, authorName)),
       Promise.resolve(this.detectGhostCitations(text, sources)),
       Promise.resolve(this.detectTranslationPlagiarism(text, sources)),
       Promise.resolve(this.detectStructurePlagiarism(text, sources)),
       Promise.resolve(this.detectDataPlagiarism(text, sources)),
       Promise.resolve(this.detectMethodologyPlagiarism(text, sources)),
-      Promise.resolve(this.detectAuthorOmission(text, sources))
+      Promise.resolve(this.detectAuthorOmissionOptimized(text, textKeywords, sources))
     ]);
 
     // Combine all matches
