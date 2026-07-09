@@ -11,29 +11,71 @@ import { LibrarySyncPanel } from './components/LibrarySyncPanel';
 import { AcademicSearchPanel } from './components/AcademicSearchPanel';
 import { CloudSyncPanel } from './components/CloudSyncPanel';
 import { NationalRecommendations } from './components/NationalRecommendations';
-import { mockUser, mockResources, getRecommendations } from './data/mockData';
+import { LoginPage } from './components/LoginPage';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { mockResources, getRecommendations } from './data/mockData';
+import { Loader2, LogOut } from 'lucide-react';
 
-function App() {
+function AppContent() {
+  const { user, loading, logout, error } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showProfile, setShowProfile] = useState(false);
-  const user = mockUser;
 
-  const recommendations = getRecommendations(user.id);
-  const recentResources = mockResources.filter(r => user.readingHistory.includes(r.id));
+  // Show loading screen while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-white mx-auto mb-4" />
+          <p className="text-white text-lg">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  // Convert AuthUser to mockUser format for compatibility with existing components
+  const currentUser = {
+    id: user.id,
+    name: user.name || 'Usuario',
+    email: user.email,
+    role: user.role === 'admin' ? 'admin' : 'student',
+    department: user.department || 'General',
+    academicLevel: user.role === 'admin' ? 'Administrator' : 'Lector',
+    interests: ['General Interest'],
+    readingHistory: [],
+    favoriteGenres: [user.department || 'General'],
+    researchAreas: ['General Research'],
+  };
+
+  const recommendations = getRecommendations(currentUser.id);
+  const recentResources = mockResources.filter(r => currentUser.readingHistory.includes(r.id));
   const trendingResources = mockResources
     .sort((a, b) => b.citations - a.citations)
     .slice(0, 4);
 
-  const handleProfileClick = () => {
+  const handleProfileClick = async () => {
     setShowProfile(!showProfile);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.error('Error logging out:', err);
+    }
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <Dashboard 
-            user={user}
+          <Dashboard
+            user={currentUser}
             recentResources={recentResources}
             trendingResources={trendingResources}
           />
@@ -60,25 +102,29 @@ function App() {
         return (
           <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Favoritos</h2>
-            <p className="text-gray-600">Tus recursos favoritos aparecerán aquí.</p>
+            <p className="text-gray-600">Tus recursos favoritos apareceran aqui.</p>
           </div>
         );
       case 'history':
         return (
           <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Historial de Lectura</h2>
-            <div className="grid grid-cols-1 gap-6">
-              {recentResources.map(resource => (
-                <div key={resource.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                  <img src={resource.thumbnail} alt={resource.title} className="w-12 h-16 object-cover rounded" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{resource.title}</h3>
-                    <p className="text-sm text-gray-600">por {resource.authors.join(', ')}</p>
-                    <p className="text-xs text-gray-500 mt-1">Leído el {new Date().toLocaleDateString()}</p>
+            {recentResources.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6">
+                {recentResources.map((resource) => (
+                  <div key={resource.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <img src={resource.thumbnail} alt={resource.title} className="w-12 h-16 object-cover rounded" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{resource.title}</h3>
+                      <p className="text-sm text-gray-600">por {resource.authors.join(', ')}</p>
+                      <p className="text-xs text-gray-500 mt-1">Leido el {new Date().toLocaleDateString()}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-600 text-center">No hay recursos en el historial.</p>
+            )}
           </div>
         );
       case 'trending':
@@ -86,13 +132,13 @@ function App() {
           <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Recursos en Tendencia</h2>
             <div className="grid grid-cols-1 gap-6">
-              {trendingResources.map(resource => (
+              {trendingResources.map((resource) => (
                 <div key={resource.id} className="p-4 border border-gray-200 rounded-lg">
                   <h3 className="font-semibold text-gray-900 mb-2">{resource.title}</h3>
                   <p className="text-sm text-gray-600 mb-2">por {resource.authors.join(', ')}</p>
                   <div className="flex items-center space-x-4 text-xs text-gray-500">
                     <span>{resource.citations} citas</span>
-                    <span>{resource.rating} ⭐</span>
+                    <span>{resource.rating} estrellas</span>
                     <span>{resource.publishedYear}</span>
                   </div>
                 </div>
@@ -103,14 +149,14 @@ function App() {
       case 'analytics':
         return (
           <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Analíticas de Investigación</h2>
-            <p className="text-gray-600">Analíticas detalladas e insights sobre tus patrones de investigación.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Analiticas de Investigacion</h2>
+            <p className="text-gray-600">Analiticas detalladas e insights sobre tus patrones de investigacion.</p>
           </div>
         );
       case 'collaborate':
         return (
           <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Centro de Colaboración</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Centro de Colaboracion</h2>
             <p className="text-gray-600">Conecta con otros investigadores y colabora en proyectos.</p>
           </div>
         );
@@ -121,25 +167,21 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header user={user} onProfileClick={handleProfileClick} />
+      <Header user={currentUser} onProfileClick={handleProfileClick} />
 
       <div className="flex">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
-        <main className="flex-1 p-8">
-          {renderContent()}
-        </main>
+        <main className="flex-1 p-8">{renderContent()}</main>
       </div>
 
+      {/* Profile Panel */}
       {showProfile && (
         <div className="fixed inset-y-0 right-0 w-80 bg-white shadow-xl z-50 p-6 overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">Perfil</h2>
-            <button
-              onClick={() => setShowProfile(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              ✕
+            <button onClick={() => setShowProfile(false)} className="text-gray-500 hover:text-gray-700 text-xl">
+              X
             </button>
           </div>
 
@@ -147,28 +189,31 @@ function App() {
             <div className="text-center">
               <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-white">
-                  {user.name.split(' ').map(n => n[0]).join('')}
+                  {currentUser.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .slice(0, 2)}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{user.name}</h3>
-              <p className="text-sm text-gray-600">{user.email}</p>
+              <h3 className="text-lg font-semibold text-gray-900">{currentUser.name}</h3>
+              <p className="text-sm text-gray-600">{currentUser.email}</p>
               <div className="mt-2">
-                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                  user.role === 'admin' ? 'text-red-600 bg-red-50' :
-                  user.role === 'faculty' ? 'text-purple-600 bg-purple-50' :
-                  'text-blue-600 bg-blue-50'
-                }`}>
-                  {user.role === 'admin' ? 'Administrador' :
-                   user.role === 'faculty' ? 'Docente' : 'Estudiante'}
+                <span
+                  className={`px-3 py-1 text-sm font-medium rounded-full ${
+                    currentUser.role === 'admin' ? 'text-red-600 bg-red-50' : 'text-blue-600 bg-blue-50'
+                  }`}
+                >
+                  {currentUser.role === 'admin' ? 'Administrador' : 'Lector'}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">{user.department}</p>
+              <p className="text-sm text-gray-600 mt-1">{currentUser.department}</p>
             </div>
 
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Intereses de Investigación</h4>
+            <div className="border-t border-gray-200 pt-4">
+              <h4 className="font-semibold text-gray-900 mb-3">Intereses de Investigacion</h4>
               <div className="flex flex-wrap gap-2">
-                {user.interests.map((interest, index) => (
+                {currentUser.interests.map((interest, index) => (
                   <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md">
                     {interest}
                   </span>
@@ -176,18 +221,38 @@ function App() {
               </div>
             </div>
 
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Áreas de Investigación</h4>
+            <div className="border-t border-gray-200 pt-4">
+              <h4 className="font-semibold text-gray-900 mb-3">Areas de Investigacion</h4>
               <div className="space-y-2">
-                {user.researchAreas.map((area, index) => (
-                  <div key={index} className="text-sm text-gray-600">• {area}</div>
+                {currentUser.researchAreas.map((area, index) => (
+                  <div key={index} className="text-sm text-gray-600">
+                    - {area}
+                  </div>
                 ))}
               </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
+              >
+                <LogOut className="w-4 h-4" />
+                Cerrar Sesion
+              </button>
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
