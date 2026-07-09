@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  TrendingUp, 
-  BookOpen, 
-  Users, 
+import {
+  TrendingUp,
+  BookOpen,
+  Users,
   Clock,
   ArrowRight,
   Brain,
@@ -17,6 +17,7 @@ import { User, Resource } from '../types';
 import { ResourceCard } from './ResourceCard';
 import { AuthModal } from './AuthModal';
 import { UserManagementPanel } from './UserManagementPanel';
+import { SettingsPanel } from './SettingsPanel';
 
 interface DashboardProps {
   user: User;
@@ -27,6 +28,7 @@ interface DashboardProps {
 export function Dashboard({ user, recentResources, trendingResources }: DashboardProps) {
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
 
   const getRoleSpecificStats = () => {
     switch (user.role) {
@@ -213,14 +215,14 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-lg ${stat.color}`}>
                   <Icon className="h-6 w-6 text-white" />
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-gray-500">{stat.label}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
                 </div>
               </div>
               <div className="flex items-center">
@@ -228,7 +230,7 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
                   stat.changeType === 'positive' ? 'text-green-500' : 'text-gray-400'
                 }`} />
                 <span className={`text-sm ${
-                  stat.changeType === 'positive' ? 'text-green-600' : 'text-gray-600'
+                  stat.changeType === 'positive' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
                 }`}>
                   {stat.change}
                 </span>
@@ -239,95 +241,95 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
       </div>
 
       {/* Role-specific AI Insights */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <Zap className="h-6 w-6 text-yellow-500" />
-            <h3 className="text-xl font-bold text-gray-900">
-              {user.role === 'admin' ? 'System Insights' : 
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              {user.role === 'admin' ? 'System Insights' :
                user.role === 'faculty' ? 'Research Insights' : 'AI Insights'}
             </h3>
           </div>
-          <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center">
+          <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm flex items-center transition-colors">
             View All <ArrowRight className="h-4 w-4 ml-1" />
           </button>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {user.role === 'admin' ? (
             <>
-              <div className="p-4 bg-red-50 rounded-lg">
-                <Shield className="h-5 w-5 text-red-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">System Health</h4>
-                <p className="text-sm text-gray-600">
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors">
+                <Shield className="h-5 w-5 text-red-600 dark:text-red-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">System Health</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   All services running optimally with 99.9% uptime
                 </p>
               </div>
-              
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">User Activity</h4>
-                <p className="text-sm text-gray-600">
+
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg transition-colors">
+                <Users className="h-5 w-5 text-blue-600 dark:text-blue-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">User Activity</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Peak usage hours: 10-12 AM and 2-4 PM daily
                 </p>
               </div>
-              
-              <div className="p-4 bg-green-50 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-green-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">Performance</h4>
-                <p className="text-sm text-gray-600">
+
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg transition-colors">
+                <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Performance</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   AI recommendation accuracy improved by 5% this month
                 </p>
               </div>
             </>
           ) : user.role === 'faculty' ? (
             <>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <GraduationCap className="h-5 w-5 text-purple-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">Student Engagement</h4>
-                <p className="text-sm text-gray-600">
+              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg transition-colors">
+                <GraduationCap className="h-5 w-5 text-purple-600 dark:text-purple-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Student Engagement</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Your students show 92% engagement with recommended resources
                 </p>
               </div>
-              
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <BookOpen className="h-5 w-5 text-blue-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">Research Trends</h4>
-                <p className="text-sm text-gray-600">
+
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg transition-colors">
+                <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Research Trends</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Your research area is trending with 15% more citations
                 </p>
               </div>
-              
-              <div className="p-4 bg-green-50 rounded-lg">
-                <Users className="h-5 w-5 text-green-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">Collaboration</h4>
-                <p className="text-sm text-gray-600">
+
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg transition-colors">
+                <Users className="h-5 w-5 text-green-600 dark:text-green-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Collaboration</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   5 new collaboration opportunities identified
                 </p>
               </div>
             </>
           ) : (
             <>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <Target className="h-5 w-5 text-green-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">Study Focus</h4>
-                <p className="text-sm text-gray-600">
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg transition-colors">
+                <Target className="h-5 w-5 text-green-600 dark:text-green-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Study Focus</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Your reading pattern shows 85% alignment with current trends
                 </p>
               </div>
-              
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">Study Groups</h4>
-                <p className="text-sm text-gray-600">
+
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg transition-colors">
+                <Users className="h-5 w-5 text-blue-600 dark:text-blue-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Study Groups</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   3 students share similar interests and study schedule
                 </p>
               </div>
-              
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <BookOpen className="h-5 w-5 text-purple-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-1">Knowledge Gaps</h4>
-                <p className="text-sm text-gray-600">
+
+              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg transition-colors">
+                <BookOpen className="h-5 w-5 text-purple-600 dark:text-purple-400 mb-2" />
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Knowledge Gaps</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Consider exploring Ethics in AI to complement your studies
                 </p>
               </div>
@@ -340,12 +342,12 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
       {user.role !== 'admin' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Resources */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                 {user.role === 'faculty' ? 'Recent Research' : 'Continue Reading'}
               </h3>
-              <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center">
+              <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm flex items-center transition-colors">
                 View All <ArrowRight className="h-4 w-4 ml-1" />
               </button>
             </div>
@@ -357,10 +359,10 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
           </div>
 
           {/* Trending */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900">Trending Now</h3>
-              <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Trending Now</h3>
+              <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm flex items-center transition-colors">
                 View All <ArrowRight className="h-4 w-4 ml-1" />
               </button>
             </div>
@@ -375,9 +377,9 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
 
       {/* Admin-specific Management Panel */}
       {user.role === 'admin' && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-900">System Management</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">System Management</h3>
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowUserManagement(true)}
@@ -395,33 +397,36 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
               </button>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button 
+            <button
               onClick={() => setShowUserManagement(true)}
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+              className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
             >
-              <Users className="h-6 w-6 text-blue-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">User Management</h4>
-              <p className="text-sm text-gray-600">Manage users and permissions</p>
+              <Users className="h-6 w-6 text-blue-600 dark:text-blue-400 mb-2" />
+              <h4 className="font-semibold text-gray-900 dark:text-white">User Management</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Manage users and permissions</p>
             </button>
-            
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <BookOpen className="h-6 w-6 text-green-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">Resource Management</h4>
-              <p className="text-sm text-gray-600">Add and manage library resources</p>
+
+            <button className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
+              <BookOpen className="h-6 w-6 text-green-600 dark:text-green-400 mb-2" />
+              <h4 className="font-semibold text-gray-900 dark:text-white">Resource Management</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Add and manage library resources</p>
             </button>
-            
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Brain className="h-6 w-6 text-purple-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">AI Configuration</h4>
-              <p className="text-sm text-gray-600">Configure recommendation algorithms</p>
+
+            <button className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
+              <Brain className="h-6 w-6 text-purple-600 dark:text-purple-400 mb-2" />
+              <h4 className="font-semibold text-gray-900 dark:text-white">AI Configuration</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Configure recommendation algorithms</p>
             </button>
-            
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <Settings className="h-6 w-6 text-orange-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">System Settings</h4>
-              <p className="text-sm text-gray-600">Configure system parameters</p>
+
+            <button
+              onClick={() => setShowSettingsPanel(true)}
+              className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
+            >
+              <Settings className="h-6 w-6 text-orange-600 dark:text-orange-400 mb-2" />
+              <h4 className="font-semibold text-gray-900 dark:text-white">System Settings</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Configure system parameters</p>
             </button>
           </div>
         </div>
@@ -435,6 +440,9 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
         currentUser={user}
         isAdminCreating={true}
       />
+
+      {/* Settings Panel */}
+      <SettingsPanel isOpen={showSettingsPanel} onClose={() => setShowSettingsPanel(false)} />
     </div>
   );
 }

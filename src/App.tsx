@@ -13,6 +13,7 @@ import { CloudSyncPanel } from './components/CloudSyncPanel';
 import { NationalRecommendations } from './components/NationalRecommendations';
 import { LoginPage } from './components/LoginPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { mockResources, getRecommendations } from './data/mockData';
 import { Loader2, LogOut } from 'lucide-react';
 
@@ -100,43 +101,43 @@ function AppContent() {
         return <NationalRecommendations />;
       case 'favorites':
         return (
-          <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Favoritos</h2>
-            <p className="text-gray-600">Tus recursos favoritos apareceran aqui.</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Favoritos</h2>
+            <p className="text-gray-600 dark:text-gray-400">Tus recursos favoritos apareceran aqui.</p>
           </div>
         );
       case 'history':
         return (
-          <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Historial de Lectura</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Historial de Lectura</h2>
             {recentResources.length > 0 ? (
               <div className="grid grid-cols-1 gap-6">
                 {recentResources.map((resource) => (
-                  <div key={resource.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <div key={resource.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg transition-colors">
                     <img src={resource.thumbnail} alt={resource.title} className="w-12 h-16 object-cover rounded" />
                     <div>
-                      <h3 className="font-semibold text-gray-900">{resource.title}</h3>
-                      <p className="text-sm text-gray-600">por {resource.authors.join(', ')}</p>
-                      <p className="text-xs text-gray-500 mt-1">Leido el {new Date().toLocaleDateString()}</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{resource.title}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">por {resource.authors.join(', ')}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Leido el {new Date().toLocaleDateString()}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-600 text-center">No hay recursos en el historial.</p>
+              <p className="text-gray-600 dark:text-gray-400 text-center">No hay recursos en el historial.</p>
             )}
           </div>
         );
       case 'trending':
         return (
-          <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recursos en Tendencia</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Recursos en Tendencia</h2>
             <div className="grid grid-cols-1 gap-6">
               {trendingResources.map((resource) => (
-                <div key={resource.id} className="p-4 border border-gray-200 rounded-lg">
-                  <h3 className="font-semibold text-gray-900 mb-2">{resource.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">por {resource.authors.join(', ')}</p>
-                  <div className="flex items-center space-x-4 text-xs text-gray-500">
+                <div key={resource.id} className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg transition-colors">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{resource.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">por {resource.authors.join(', ')}</p>
+                  <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500">
                     <span>{resource.citations} citas</span>
                     <span>{resource.rating} estrellas</span>
                     <span>{resource.publishedYear}</span>
@@ -148,16 +149,16 @@ function AppContent() {
         );
       case 'analytics':
         return (
-          <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Analiticas de Investigacion</h2>
-            <p className="text-gray-600">Analiticas detalladas e insights sobre tus patrones de investigacion.</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Analiticas de Investigacion</h2>
+            <p className="text-gray-600 dark:text-gray-400">Analiticas detalladas e insights sobre tus patrones de investigacion.</p>
           </div>
         );
       case 'collaborate':
         return (
-          <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Centro de Colaboracion</h2>
-            <p className="text-gray-600">Conecta con otros investigadores y colabora en proyectos.</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Centro de Colaboracion</h2>
+            <p className="text-gray-600 dark:text-gray-400">Conecta con otros investigadores y colabora en proyectos.</p>
           </div>
         );
       default:
@@ -166,7 +167,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <Header user={currentUser} onProfileClick={handleProfileClick} />
 
       <div className="flex">
@@ -177,10 +178,10 @@ function AppContent() {
 
       {/* Profile Panel */}
       {showProfile && (
-        <div className="fixed inset-y-0 right-0 w-80 bg-white shadow-xl z-50 p-6 overflow-y-auto">
+        <div className="fixed inset-y-0 right-0 w-80 bg-white dark:bg-gray-800 shadow-xl z-50 p-6 overflow-y-auto transition-colors">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Perfil</h2>
-            <button onClick={() => setShowProfile(false)} className="text-gray-500 hover:text-gray-700 text-xl">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Perfil</h2>
+            <button onClick={() => setShowProfile(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl">
               X
             </button>
           </div>
@@ -196,46 +197,46 @@ function AppContent() {
                     .slice(0, 2)}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{currentUser.name}</h3>
-              <p className="text-sm text-gray-600">{currentUser.email}</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{currentUser.name}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{currentUser.email}</p>
               <div className="mt-2">
                 <span
                   className={`px-3 py-1 text-sm font-medium rounded-full ${
-                    currentUser.role === 'admin' ? 'text-red-600 bg-red-50' : 'text-blue-600 bg-blue-50'
+                    currentUser.role === 'admin' ? 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400' : 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400'
                   }`}
                 >
                   {currentUser.role === 'admin' ? 'Administrador' : 'Lector'}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">{currentUser.department}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{currentUser.department}</p>
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
-              <h4 className="font-semibold text-gray-900 mb-3">Intereses de Investigacion</h4>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Intereses de Investigacion</h4>
               <div className="flex flex-wrap gap-2">
                 {currentUser.interests.map((interest, index) => (
-                  <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md">
+                  <span key={index} className="px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs rounded-md">
                     {interest}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
-              <h4 className="font-semibold text-gray-900 mb-3">Areas de Investigacion</h4>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Areas de Investigacion</h4>
               <div className="space-y-2">
                 {currentUser.researchAreas.map((area, index) => (
-                  <div key={index} className="text-sm text-gray-600">
+                  <div key={index} className="text-sm text-gray-600 dark:text-gray-400">
                     - {area}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors font-medium"
               >
                 <LogOut className="w-4 h-4" />
                 Cerrar Sesion
@@ -250,9 +251,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
