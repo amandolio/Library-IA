@@ -14,6 +14,7 @@ import { NationalRecommendations } from './components/NationalRecommendations';
 import { LoginPage } from './components/LoginPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { SettingsPanel } from './components/SettingsPanel';
 import { mockResources, getRecommendations } from './data/mockData';
 import { Loader2, LogOut } from 'lucide-react';
 
@@ -21,6 +22,7 @@ function AppContent() {
   const { user, loading, logout, error } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showProfile, setShowProfile] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Show loading screen while checking auth
   if (loading) {
@@ -168,13 +170,15 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <Header user={currentUser} onProfileClick={handleProfileClick} />
+      <Header user={currentUser} onProfileClick={handleProfileClick} onSettingsClick={() => setShowSettings(true)} />
 
       <div className="flex">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
         <main className="flex-1 p-8">{renderContent()}</main>
       </div>
+
+      <SettingsPanel isOpen={showSettings} onClose={() => setShowSettings(false)} />
 
       {/* Profile Panel */}
       {showProfile && (

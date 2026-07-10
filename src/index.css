@@ -31,9 +31,15 @@ html.dark body {
   background: #6b7280;
 }
 
-/* Smooth theme transition */
-* {
-  transition-property: background-color, border-color;
-  transition-duration: 150ms;
+/* Smooth theme transition — include color so text doesn't flash */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 200ms;
   transition-timing-function: ease-in-out;
+}
+
+/* Don't animate transitions for elements that shouldn't animate */
+button, a {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: 150ms;
 }

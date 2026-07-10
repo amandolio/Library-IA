@@ -1,6 +1,7 @@
 import React from 'react';
-import { Search, Bell, User, BookOpen, Settings } from 'lucide-react';
+import { Search, Bell, User, BookOpen, Settings, Sun, Moon } from 'lucide-react';
 import { User as UserType } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface HeaderProps {
   user: UserType;
@@ -9,6 +10,7 @@ interface HeaderProps {
 }
 
 export function Header({ user, onProfileClick, onSettingsClick }: HeaderProps) {
+  const { theme, toggleTheme } = useTheme();
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin': return 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400';
@@ -51,6 +53,14 @@ export function Header({ user, onProfileClick, onSettingsClick }: HeaderProps) {
             <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 relative transition-colors">
               <Bell className="h-5 w-5" />
               <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
 
             <button
