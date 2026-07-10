@@ -25,20 +25,7 @@ function AppContent() {
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Seed the alainr admin user on first load
-  useEffect(() => {
-    const seedAdmin = async () => {
-      try {
-        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-management/seed`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-      } catch {
-        // Non-blocking — ignore errors
-      }
-    };
-    seedAdmin();
-  }, []);
+
 
   // Show loading screen while checking auth
   if (loading) {
