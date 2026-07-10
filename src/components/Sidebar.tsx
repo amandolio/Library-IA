@@ -22,9 +22,10 @@ import {
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  userRole?: string;
 }
 
-export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+export function Sidebar({ activeTab, onTabChange, userRole }: SidebarProps) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'topic-search', label: 'Busqueda por Tema', icon: Lightbulb },
@@ -41,6 +42,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'trending', label: 'Tendencias', icon: TrendingUp },
     { id: 'analytics', label: 'Analiticas', icon: BarChart3 },
     { id: 'collaborate', label: 'Colaborar', icon: Users },
+    ...(userRole === 'admin' ? [{ id: 'user-management', label: 'Gestion de Usuarios', icon: Settings }] : []),
   ];
 
   return (

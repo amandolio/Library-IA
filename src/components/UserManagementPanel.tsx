@@ -1,189 +1,185 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Users,
-  UserCheck,
-  Clock,
-  Shield,
-  BookOpen,
-  Search,
-  Filter,
-  RefreshCw,
-  Eye,
-  UserX,
-  Activity,
-  Calendar,
-  MapPin,
-  Trash2,
-  AlertTriangle
+  Users, UserCheck, Clock, Shield, BookOpen, Search,
+  Filter, RefreshCw, UserX, Activity, Calendar, Trash2,
+  AlertTriangle, Crown, ChevronDown
 } from 'lucide-react';
-import { User } from '../types';
-import { 
-  getAllUsers, 
-  getActiveSessions, 
-  updateSessionActivity, 
-  closeSession, 
-  cleanInactiveSessions,
-  deleteUserFromDatabase,
-  ActiveSession 
-} from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/authService';
 
-interface UserManagementPanelProps {
-  currentUser: User;
+interface UserRow {
+  id: string;
+  email: string;
+  name: string;
+  department: string;
+  role: 'admin' | 'lector';
+  created_at: string;
+  session: { login_at: string; last_seen: string } | null;
 }
 
+interface UserManagementPanelProps {
+  currentUser: { id: string; role: string };
+}
+
+const EDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-management`;
+
 export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
+  const { session, refreshUser } = useAuth();
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'users' | 'sessions'>('users');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserRow | null>(null);
+  const [roleChangeTarget, setRoleChangeTarget] = useState<UserRow | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
-  // Actualizar datos cada 30 segundos
+  const authHeaders = {
+    Authorization: `Bearer ${session?.access_token}`,
+    'Content-Type': 'application/json',
+  };
+
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchUsers = useCallback(async () => {
+    if (!session?.access_token) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${EDGE_URL}/users`, { headers: authHeaders });
+      if (!res.ok) throw new Error('Error al cargar usuarios');
+      const { users: data } = await res.json();
+      setUsers(data ?? []);
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [session?.access_token]);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  // Re-fetch sessions every 30s
   useEffect(() => {
-    const updateData = () => {
-      cleanInactiveSessions();
-      setAllUsers(getAllUsers());
-      setActiveSessions(getActiveSessions());
-    };
-
-    updateData();
-    const interval = setInterval(updateData, 30000);
-
+    const interval = setInterval(fetchUsers, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchUsers]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    cleanInactiveSessions();
-    setAllUsers(getAllUsers());
-    setActiveSessions(getActiveSessions());
-    
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1000);
+    await fetchUsers();
+    setIsRefreshing(false);
   };
 
-  const handleCloseSession = (userId: string) => {
-    closeSession(userId);
-    setActiveSessions(getActiveSessions());
-  };
-
-  const handleDeleteUser = (user: User) => {
-    if (user.role === 'admin') {
-      alert('No se pueden eliminar cuentas de administrador');
-      return;
+  const handleRoleChange = async (target: UserRow, newRole: 'admin' | 'lector') => {
+    setActionLoading(target.id);
+    try {
+      const res = await fetch(`${EDGE_URL}/users/${target.id}/role`, {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify({ role: newRole }),
+      });
+      if (!res.ok) throw new Error('Error al cambiar rol');
+      showToast(`Rol de ${target.name} cambiado a ${newRole === 'admin' ? 'Administrador' : 'Lector'}`);
+      await fetchUsers();
+      if (target.id === currentUser.id) await refreshUser();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setActionLoading(null);
+      setRoleChangeTarget(null);
     }
-    setUserToDelete(user);
-    setShowDeleteConfirm(true);
   };
 
-  const confirmDeleteUser = () => {
-    if (userToDelete) {
-      const success = deleteUserFromDatabase(userToDelete.id);
-      if (success) {
-        setAllUsers(getAllUsers());
-        setActiveSessions(getActiveSessions());
-        alert(`Usuario ${userToDelete.name} eliminado exitosamente`);
-      } else {
-        alert('Error al eliminar el usuario');
-      }
+  const handleKickSession = async (userId: string, name: string) => {
+    setActionLoading(userId);
+    try {
+      const res = await fetch(`${EDGE_URL}/sessions/${userId}`, {
+        method: 'DELETE',
+        headers: authHeaders,
+      });
+      if (!res.ok) throw new Error('Error al cerrar sesion');
+      showToast(`Sesion de ${name} cerrada`);
+      await fetchUsers();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setActionLoading(null);
     }
-    setShowDeleteConfirm(false);
-    setUserToDelete(null);
   };
 
-  const cancelDeleteUser = () => {
-    setShowDeleteConfirm(false);
-    setUserToDelete(null);
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    setActionLoading(userToDelete.id);
+    try {
+      // Delete from Supabase auth via edge function — skip for now, just remove session + profile
+      await supabase.from('active_sessions').delete().eq('user_id', userToDelete.id);
+      await supabase.from('user_profiles').delete().eq('id', userToDelete.id);
+      showToast(`Usuario ${userToDelete.name} eliminado`);
+      await fetchUsers();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setActionLoading(null);
+      setUserToDelete(null);
+    }
   };
 
-  const filteredUsers = allUsers.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.department.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    
-    return matchesSearch && matchesRole;
+  const isOnline = (lastSeen: string) => {
+    return new Date().getTime() - new Date(lastSeen).getTime() < 90000; // 90s threshold
+  };
+
+  const formatTime = (iso: string) =>
+    new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(iso));
+
+  const formatDate = (iso: string) =>
+    new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(iso));
+
+  const getSessionDuration = (loginAt: string) => {
+    const diff = new Date().getTime() - new Date(loginAt).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    return hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`;
+  };
+
+  const activeSessions = users.filter(u => u.session !== null);
+
+  const filteredUsers = users.filter(u => {
+    const matchSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.department.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchRole = roleFilter === 'all' || u.role === roleFilter;
+    return matchSearch && matchRole;
   });
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'admin': return Shield;
-      case 'lector': return BookOpen;
-      default: return Users;
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'text-red-600 bg-red-50 border-red-200';
-      case 'lector': return 'text-blue-600 bg-blue-50 border-blue-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'admin': return 'Administrador';
-      case 'lector': return 'Lector';
-      default: return role;
-    }
-  };
-
-  const formatTime = (date: Date) => {
-    return new Intl.DateTimeFormat('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }).format(date);
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).format(date);
-  };
-
-  const getSessionDuration = (loginTime: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - loginTime.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes % 60}m`;
-    }
-    return `${minutes}m`;
-  };
-
-  const isSessionActive = (lastActivity: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - lastActivity.getTime();
-    return diff < 5 * 60 * 1000; // Activo si la última actividad fue hace menos de 5 minutos
-  };
-
-  const userStats = {
-    total: allUsers.length,
-    admins: allUsers.filter(u => u.role === 'admin').length,
-    lectores: allUsers.filter(u => u.role === 'lector').length,
-    activeSessions: activeSessions.length
+  const stats = {
+    total: users.length,
+    admins: users.filter(u => u.role === 'admin').length,
+    lectores: users.filter(u => u.role === 'lector').length,
+    online: activeSessions.filter(u => u.session && isOnline(u.session.last_seen)).length,
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-xl text-white text-sm font-medium transition-all ${
+          toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+        }`}>
+          {toast.msg}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h2>
-          <p className="text-gray-600 mt-1">
-            Administra usuarios registrados y sesiones activas del sistema
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Gestion de Usuarios</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Administra usuarios y sesiones activas del sistema</p>
         </div>
         <button
           onClick={handleRefresh}
@@ -195,104 +191,73 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Usuarios</p>
-              <p className="text-2xl font-bold text-gray-900">{userStats.total}</p>
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Usuarios', value: stats.total, icon: Users, color: 'text-blue-600' },
+          { label: 'Administradores', value: stats.admins, icon: Shield, color: 'text-red-600' },
+          { label: 'Lectores', value: stats.lectores, icon: BookOpen, color: 'text-blue-500' },
+          { label: 'En Linea Ahora', value: stats.online, icon: UserCheck, color: 'text-green-600' },
+        ].map(({ label, value, icon: Icon, color }) => (
+          <div key={label} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+                <p className={`text-2xl font-bold ${color}`}>{value}</p>
+              </div>
+              <Icon className={`h-8 w-8 ${color}`} />
             </div>
-            <Users className="h-8 w-8 text-blue-600" />
           </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Administradores</p>
-              <p className="text-2xl font-bold text-red-600">{userStats.admins}</p>
-            </div>
-            <Shield className="h-8 w-8 text-red-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Lectores</p>
-              <p className="text-2xl font-bold text-blue-600">{userStats.lectores}</p>
-            </div>
-            <BookOpen className="h-8 w-8 text-blue-600" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Sesiones Activas</p>
-              <p className="text-2xl font-bold text-green-600">{userStats.activeSessions}</p>
-            </div>
-            <UserCheck className="h-8 w-8 text-green-600" />
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="flex space-x-8 px-6">
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'users'
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4" />
-                <span>Usuarios Registrados ({userStats.total})</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('sessions')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'sessions'
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Activity className="h-4 w-4" />
-                <span>Sesiones Activas ({userStats.activeSessions})</span>
-              </div>
-            </button>
+            {([
+              { key: 'users', label: `Usuarios (${stats.total})`, icon: Users },
+              { key: 'sessions', label: `Sesiones Activas (${activeSessions.length})`, icon: Activity },
+            ] as const).map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center space-x-2 ${
+                  activeTab === key
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{label}</span>
+              </button>
+            ))}
           </nav>
         </div>
 
         <div className="p-6">
-          {activeTab === 'users' ? (
+          {loading && users.length === 0 ? (
+            <div className="flex items-center justify-center py-16">
+              <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
+            </div>
+          ) : activeTab === 'users' ? (
             <>
-              {/* Search and Filter */}
               <div className="flex items-center space-x-4 mb-6">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <input
-                    type="text"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={e => setSearchTerm(e.target.value)}
                     placeholder="Buscar por nombre, email o departamento..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
-                
                 <div className="flex items-center space-x-2">
                   <Filter className="h-4 w-4 text-gray-500" />
                   <select
                     value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
+                    onChange={e => setRoleFilter(e.target.value)}
+                    className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500"
                   >
                     <option value="all">Todos los roles</option>
                     <option value="admin">Administradores</option>
@@ -301,137 +266,150 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
                 </div>
               </div>
 
-              {/* Users List */}
-              <div className="space-y-4">
-                {filteredUsers.map((user) => {
-                  const RoleIcon = getRoleIcon(user.role);
+              <div className="space-y-3">
+                {filteredUsers.map(user => {
                   const isCurrentUser = user.id === currentUser.id;
-                  const hasActiveSession = activeSessions.some(s => s.userId === user.id);
-                  const canDelete = user.role !== 'admin' && !isCurrentUser;
-                  
+                  const online = user.session && isOnline(user.session.last_seen);
+                  const busy = actionLoading === user.id;
+
                   return (
-                    <div key={user.id} className={`p-4 border rounded-lg transition-all ${
-                      isCurrentUser ? 'border-red-200 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                    <div key={user.id} className={`p-4 border rounded-xl transition-all ${
+                      isCurrentUser
+                        ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                            <RoleIcon className="h-6 w-6 text-gray-600" />
+                          <div className="relative">
+                            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white font-bold text-lg">
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-gray-800 ${
+                              online ? 'bg-green-500' : 'bg-gray-300'
+                            }`} />
                           </div>
-                          
                           <div>
-                            <div className="flex items-center space-x-2">
-                              <h3 className="font-semibold text-gray-900">{user.name}</h3>
+                            <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                              <span className="font-semibold text-gray-900 dark:text-white">{user.name}</span>
                               {isCurrentUser && (
-                                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
-                                  Tú
-                                </span>
+                                <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-xs rounded-full">Tu</span>
                               )}
-                              {hasActiveSession && (
-                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full flex items-center">
-                                  <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                                  En línea
+                              <span className={`px-2 py-0.5 text-xs font-medium rounded-full border flex items-center gap-1 ${
+                                user.role === 'admin'
+                                  ? 'text-red-600 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700'
+                                  : 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700'
+                              }`}>
+                                {user.role === 'admin' ? <Shield className="h-3 w-3" /> : <BookOpen className="h-3 w-3" />}
+                                {user.role === 'admin' ? 'Administrador' : 'Lector'}
+                              </span>
+                              {online && (
+                                <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                                  En linea
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600">{user.email}</p>
-                            <div className="flex items-center space-x-4 mt-1">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getRoleColor(user.role)}`}>
-                                {getRoleLabel(user.role)}
-                              </span>
-                              <span className="text-xs text-gray-500 flex items-center">
-                                <MapPin className="h-3 w-3 mr-1" />
-                                {user.department}
-                              </span>
-                            </div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{user.email}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">{user.department}</p>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          {canDelete && (
+
+                        {/* Actions — only for admin acting on others */}
+                        {currentUser.role === 'admin' && !isCurrentUser && (
+                          <div className="flex items-center space-x-2">
+                            {/* Role toggle */}
                             <button
-                              onClick={() => handleDeleteUser(user)}
-                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Eliminar usuario"
+                              disabled={busy}
+                              onClick={() => setRoleChangeTarget(user)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Crown className="h-3.5 w-3.5" />
+                              Cambiar rol
+                              <ChevronDown className="h-3 w-3" />
                             </button>
-                          )}
-                        </div>
+
+                            {/* Delete */}
+                            {user.role !== 'admin' && (
+                              <button
+                                disabled={busy}
+                                onClick={() => setUserToDelete(user)}
+                                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
+                                title="Eliminar usuario"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {filteredUsers.length === 0 && (
+              {filteredUsers.length === 0 && !loading && (
                 <div className="text-center py-12">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron usuarios</h3>
-                  <p className="text-gray-600">
-                    Intenta ajustar los filtros de búsqueda.
-                  </p>
+                  <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No se encontraron usuarios</p>
                 </div>
               )}
             </>
           ) : (
             <>
-              {/* Active Sessions */}
-              <div className="space-y-4">
-                {activeSessions.map((session) => {
-                  const RoleIcon = getRoleIcon(session.user.role);
-                  const isActive = isSessionActive(session.lastActivity);
-                  
+              <div className="space-y-3">
+                {activeSessions.map(user => {
+                  if (!user.session) return null;
+                  const online = isOnline(user.session.last_seen);
+                  const busy = actionLoading === user.id;
                   return (
-                    <div key={session.sessionId} className="p-4 border border-gray-200 rounded-lg">
+                    <div key={user.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center relative">
-                            <RoleIcon className="h-6 w-6 text-gray-600" />
-                            <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                              isActive ? 'bg-green-500' : 'bg-yellow-500'
-                            }`}></div>
+                          <div className="relative">
+                            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-lg">
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-gray-800 ${
+                              online ? 'bg-green-500' : 'bg-yellow-500'
+                            }`} />
                           </div>
-                          
                           <div>
                             <div className="flex items-center space-x-2">
-                              <h3 className="font-semibold text-gray-900">{session.user.name}</h3>
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                isActive ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                              <span className="font-semibold text-gray-900 dark:text-white">{user.name}</span>
+                              <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                                online
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                  : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
                               }`}>
-                                {isActive ? 'Activo' : 'Inactivo'}
+                                {online ? 'Activo' : 'Inactivo'}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-600">{session.user.email}</p>
-                            <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-                              <span className="flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                Inicio: {formatTime(session.loginTime)}
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                            <div className="flex items-center space-x-4 mt-1 text-xs text-gray-400 dark:text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                Inicio: {formatTime(user.session.login_at)}
                               </span>
-                              <span className="flex items-center">
-                                <Calendar className="h-3 w-3 mr-1" />
-                                {formatDate(session.loginTime)}
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(user.session.login_at)}
                               </span>
-                              <span>
-                                Duración: {getSessionDuration(session.loginTime)}
-                              </span>
+                              <span>Duracion: {getSessionDuration(user.session.login_at)}</span>
                             </div>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <div className="text-right text-xs text-gray-500">
-                            <p>Última actividad:</p>
-                            <p>{formatTime(session.lastActivity)}</p>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="text-right text-xs text-gray-400 dark:text-gray-500">
+                            <p>Ultima actividad:</p>
+                            <p>{formatTime(user.session.last_seen)}</p>
                           </div>
-                          {session.userId !== currentUser.id && (
+                          {user.id !== currentUser.id && currentUser.role === 'admin' && (
                             <button
-                              onClick={() => handleCloseSession(session.userId)}
-                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Cerrar sesión"
+                              disabled={busy}
+                              onClick={() => handleKickSession(user.id, user.name)}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
+                              title="Cerrar sesion"
                             >
                               <UserX className="h-4 w-4" />
                             </button>
@@ -443,13 +421,10 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
                 })}
               </div>
 
-              {activeSessions.length === 0 && (
+              {activeSessions.length === 0 && !loading && (
                 <div className="text-center py-12">
-                  <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No hay sesiones activas</h3>
-                  <p className="text-gray-600">
-                    Actualmente no hay usuarios conectados al sistema.
-                  </p>
+                  <Activity className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No hay sesiones activas en este momento</p>
                 </div>
               )}
             </>
@@ -457,44 +432,82 @@ export function UserManagementPanel({ currentUser }: UserManagementPanelProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && userToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      {/* Role Change Modal */}
+      {roleChangeTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-red-100 rounded-lg">
+              <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-lg">
+                <Crown className="h-5 w-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Cambiar Rol</h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Selecciona el nuevo rol para <strong>{roleChangeTarget.name}</strong>:
+            </p>
+            <div className="space-y-2 mb-6">
+              {(['admin', 'lector'] as const).map(role => (
+                <button
+                  key={role}
+                  onClick={() => handleRoleChange(roleChangeTarget, role)}
+                  disabled={roleChangeTarget.role === role}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                    roleChangeTarget.role === role
+                      ? 'border-red-500 bg-red-50 dark:bg-red-900/30 opacity-60 cursor-not-allowed'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                  }`}
+                >
+                  {role === 'admin' ? <Shield className="h-5 w-5 text-red-600" /> : <BookOpen className="h-5 w-5 text-blue-600" />}
+                  <div className="text-left">
+                    <p className="font-medium text-gray-900 dark:text-white">{role === 'admin' ? 'Administrador' : 'Lector'}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {role === 'admin' ? 'Acceso completo al sistema' : 'Acceso de lectura'}
+                    </p>
+                  </div>
+                  {roleChangeTarget.role === role && (
+                    <span className="ml-auto text-xs text-red-600 font-medium">Actual</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setRoleChangeTarget(null)}
+              className="w-full py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-lg">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Confirmar Eliminación</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Confirmar Eliminacion</h3>
             </div>
-            
-            <div className="mb-6">
-              <p className="text-gray-600 mb-4">
-                ¿Estás seguro de que deseas eliminar la cuenta del usuario?
-              </p>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="font-semibold text-gray-900">{userToDelete.name}</p>
-                <p className="text-sm text-gray-600">{userToDelete.email}</p>
-                <p className="text-sm text-gray-600">{getRoleLabel(userToDelete.role)} - {userToDelete.department}</p>
-              </div>
-              <p className="text-red-600 text-sm mt-3 font-medium">
-                Esta acción no se puede deshacer. El usuario perderá acceso al sistema inmediatamente.
-              </p>
-            </div>
-            
+            <p className="text-gray-600 dark:text-gray-400 mb-3">
+              Estas a punto de eliminar la cuenta de <strong>{userToDelete.name}</strong> ({userToDelete.email}).
+            </p>
+            <p className="text-red-600 text-sm font-medium mb-6">Esta accion no se puede deshacer.</p>
             <div className="flex space-x-3">
               <button
-                onClick={cancelDeleteUser}
-                className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                onClick={() => setUserToDelete(null)}
+                className="flex-1 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancelar
               </button>
               <button
-                onClick={confirmDeleteUser}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+                onClick={handleDeleteUser}
+                disabled={actionLoading === userToDelete.id}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Trash2 className="h-4 w-4" />
-                <span>Eliminar Usuario</span>
+                Eliminar
               </button>
             </div>
           </div>

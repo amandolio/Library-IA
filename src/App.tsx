@@ -11,6 +11,7 @@ import { LibrarySyncPanel } from './components/LibrarySyncPanel';
 import { AcademicSearchPanel } from './components/AcademicSearchPanel';
 import { CloudSyncPanel } from './components/CloudSyncPanel';
 import { NationalRecommendations } from './components/NationalRecommendations';
+import { UserManagementPanel } from './components/UserManagementPanel';
 import { LoginPage } from './components/LoginPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -23,6 +24,21 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Seed the alainr admin user on first load
+  useEffect(() => {
+    const seedAdmin = async () => {
+      try {
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-management/seed`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch {
+        // Non-blocking — ignore errors
+      }
+    };
+    seedAdmin();
+  }, []);
 
   // Show loading screen while checking auth
   if (loading) {
@@ -46,7 +62,7 @@ function AppContent() {
     id: user.id,
     name: user.name || 'Usuario',
     email: user.email,
-    role: user.role === 'admin' ? 'admin' : 'student',
+    role: user.role === 'admin' ? 'admin' : 'lector',
     department: user.department || 'General',
     academicLevel: user.role === 'admin' ? 'Administrator' : 'Lector',
     interests: ['General Interest'],
@@ -101,6 +117,14 @@ function AppContent() {
         return <CloudSyncPanel />;
       case 'national-recommendations':
         return <NationalRecommendations />;
+      case 'user-management':
+        return currentUser.role === 'admin' ? (
+          <UserManagementPanel currentUser={{ id: currentUser.id, role: currentUser.role }} />
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
+            <p className="text-gray-600 dark:text-gray-400">Acceso restringido</p>
+          </div>
+        );
       case 'favorites':
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
@@ -173,7 +197,7 @@ function AppContent() {
       <Header user={currentUser} onProfileClick={handleProfileClick} onSettingsClick={() => setShowSettings(true)} />
 
       <div className="flex">
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} userRole={currentUser.role} />
 
         <main className="flex-1 p-8">{renderContent()}</main>
       </div>
