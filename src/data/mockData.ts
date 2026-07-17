@@ -1,4 +1,9 @@
 import { User, Resource, Recommendation } from '../types';
+import { additionalResources } from './additionalResources';
+import { additionalResources2 } from './additionalResources2';
+import { additionalResources3 } from './additionalResources3';
+import { additionalResources4 } from './additionalResources4';
+import { additionalResources5 } from './additionalResources5';
 
 // ==================== USUARIOS Y AUTENTICACIÓN ====================
 
@@ -2345,7 +2350,12 @@ export const mockResources: Resource[] = [
       digitalActiveUsers: 9
     },
     fullTextKeywords: ['blockchain', 'gobierno digital', 'américa latina', 'cuba', 'transparencia', 'smart contracts', 'trazabilidad', 'descentralización', 'gobierno electrónico', 'identidad digital', 'contratos inteligentes']
-  }
+  },
+  ...additionalResources,
+  ...additionalResources2,
+  ...additionalResources3,
+  ...additionalResources4,
+  ...additionalResources5,
 ];
 
 // ==================== SISTEMA DE SINCRONIZACIÓN BIBLIOTECARIA ====================
