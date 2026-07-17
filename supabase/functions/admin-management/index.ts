@@ -22,32 +22,7 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const path = url.pathname.replace(/^\/admin-management/, "");
 
-    // Verify caller is admin
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !caller) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Check caller role
-    const { data: callerProfile } = await supabaseAdmin
-      .from("user_profiles")
-      .select("role")
-      .eq("id", caller.id)
-      .maybeSingle();
-
-    const isAdmin = callerProfile?.role === "admin";
-
-    // POST /seed — create alainr admin (no auth check, idempotent bootstrap)
+    // POST /seed — create alainr admin (NO auth check — idempotent bootstrap)
     if (path === "/seed" && req.method === "POST") {
       const email = "alainr@administrador.uci.cu";
       const password = "123456";
@@ -59,6 +34,8 @@ Deno.serve(async (req: Request) => {
       let userId: string;
       if (existing) {
         userId = existing.id;
+        // Ensure password is correct
+        await supabaseAdmin.auth.admin.updateUserById(existing.id, { password });
       } else {
         const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
           email,
@@ -82,6 +59,31 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Verify caller is admin for all other endpoints
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !caller) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check caller role
+    const { data: callerProfile } = await supabaseAdmin
+      .from("user_profiles")
+      .select("role")
+      .eq("id", caller.id)
+      .maybeSingle();
+
+    const isAdmin = callerProfile?.role === "admin";
 
     // GET /users — list all users with profiles (admin only)
     if (path === "/users" && req.method === "GET") {
