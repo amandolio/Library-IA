@@ -10,9 +10,12 @@ export interface SourceDocument {
   type: 'academic' | 'book' | 'web' | 'journal';
 }
 
+import { additionalSourceDocuments1 } from './additionalSourceDocuments1';
+import { additionalSourceDocuments2 } from './additionalSourceDocuments2';
+
 // Academic and technical source documents organized by category
 // Each entry includes verified metadata: title, author, year, DOI, URL
-// Over 150 reliable sources from recognized authors and institutions
+// Over 250 reliable sources from recognized authors and institutions
 export const sourceDocuments: SourceDocument[] = [
   // ==================== INTELLIGENCIA ARTIFICIAL Y MACHINE LEARNING ====================
   { id: 'aiml-001', title: 'Artificial Intelligence: A Modern Approach', author: 'Stuart Russell, Peter Norvig', year: 2021, content: 'Artificial intelligence is the field of computer science dedicated to creating systems capable of performing tasks that typically require human intelligence. These tasks include learning, reasoning, problem-solving, perception, and language understanding. Modern AI systems leverage machine learning techniques, particularly deep neural networks, to learn hierarchical representations from data.', url: 'https://aima.cs.berkeley.edu/', doi: '10.1145/3454347', language: 'en', type: 'book' },
@@ -175,6 +178,9 @@ export const sourceDocuments: SourceDocument[] = [
   { id: 'ethics-001', title: 'Weapons of Math Destruction', author: 'Cathy ONeil', year: 2016, content: 'Algorithms increasingly influence important decisions about credit, employment, and criminal justice. Weapons of math destruction are algorithms that are opaque, harmful, and difficult to contest. Feedback loops reinforce existing biases. Algorithmic auditing reveals disparate impact across demographic groups.', url: 'https://www.penguinrandomhouse.com/books/242361/weapons-of-math-destruction-by-cathy-oneil/', doi: '10.5555/3345029', language: 'en', type: 'book' },
   { id: 'ethics-002', title: 'Human Compatible: AI and the Problem of Control', author: 'Stuart Russell', year: 2019, content: 'AI systems need to be designed to be beneficial to humans. The alignment problem concerns ensuring AI systems pursue goals aligned with human values. Inverse reinforcement learning infers human preferences from observed behavior. Provably beneficial AI requires formalizing human preferences.', url: 'https://www.penguinrandomhouse.com/books/598863/human-compatible-by-stuart-russell/', doi: '10.5555/3345029', language: 'en', type: 'book' },
   { id: 'ethics-003', title: 'Fairness and Machine Learning', author: 'Solon Barocas, Moritz Hardt, Arvind Narayanan', year: 2019, content: 'Fairness in machine learning concerns preventing discriminatory outcomes. Statistical parity requires equal positive prediction rates across groups. Equalized odds requires equal true positive and false positive rates. Fairness constraints can conflict with accuracy. Counterfactual fairness considers whether outcomes would differ if an individual belonged to a different group.', url: 'https://fairmlbook.org/', doi: '10.5555/3345029', language: 'en', type: 'book' },
+
+  ...additionalSourceDocuments1,
+  ...additionalSourceDocuments2,
 ];
 
 // Sample texts for demonstration
