@@ -49,17 +49,17 @@ export function ResourceCard({
 
   return (
     <div 
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
+      className="resource-card-3d bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer group preserve-3d"
       onClick={onClick}
     >
-      <div className="flex items-start space-x-4">
+      <div className="flex items-start space-x-4 preserve-3d">
         <img
           src={resource.thumbnail}
           alt={resource.title}
-          className="w-20 h-28 object-cover rounded-lg shadow-sm"
+          className="w-20 h-28 object-cover rounded-lg shadow-sm lift-3d-sm"
         />
         
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 lift-3d-sm">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <TypeIcon className="h-4 w-4 text-gray-500" />

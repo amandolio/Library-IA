@@ -46,7 +46,7 @@ export function Sidebar({ activeTab, onTabChange, userRole }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 h-full transition-colors duration-300">
+    <aside className="w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 h-full transition-colors duration-300 perspective-800">
       <nav className="mt-8">
         <div className="px-4">
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
@@ -56,14 +56,16 @@ export function Sidebar({ activeTab, onTabChange, userRole }: SidebarProps) {
         <div className="space-y-1 px-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
+            const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
                 className={`
+                  sidebar-item-3d ${isActive ? 'active-3d' : ''}
                   w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
-                  ${activeTab === item.id
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-r-2 border-blue-700 dark:border-blue-400'
+                  ${isActive
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-r-2 border-blue-700 dark:border-blue-400 glow-3d'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                   }
                 `}

@@ -192,15 +192,15 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div className={`bg-gradient-to-r ${welcome.gradient} rounded-xl p-8 text-white`}>
-        <div className="flex items-center justify-between">
-          <div>
+      <div className={`welcome-3d bg-gradient-to-r ${welcome.gradient} rounded-xl p-8 text-white depth-shadow-3d`}>
+        <div className="flex items-center justify-between preserve-3d">
+          <div className="lift-3d">
             <h2 className="text-3xl font-bold mb-2">{welcome.title}</h2>
             <p className="text-blue-100 text-lg">
               {welcome.subtitle}
             </p>
           </div>
-          <div className="flex items-center space-x-2 bg-white/10 rounded-lg p-4">
+          <div className="flex items-center space-x-2 bg-white/10 rounded-lg p-4 lift-3d float-3d">
             <Brain className="h-8 w-8" />
             <div>
               <p className="text-sm opacity-90">AI Confidence</p>
@@ -241,7 +241,7 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
       </div>
 
       {/* Role-specific AI Insights */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+      <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <Zap className="h-6 w-6 text-yellow-500" />
@@ -342,7 +342,7 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
       {user.role !== 'admin' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Resources */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+          <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                 {user.role === 'faculty' ? 'Recent Research' : 'Continue Reading'}
@@ -359,7 +359,7 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
           </div>
 
           {/* Trending */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+          <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Trending Now</h3>
               <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm flex items-center transition-colors">
@@ -377,20 +377,20 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
 
       {/* Admin-specific Management Panel */}
       {user.role === 'admin' && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+        <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">System Management</h3>
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowUserManagement(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                className="btn-3d bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
                 <Users className="h-4 w-4" />
                 <span>Gestionar Usuarios</span>
               </button>
               <button
                 onClick={() => setShowCreateUserModal(true)}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+                className="btn-3d bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
               >
                 <UserPlus className="h-4 w-4" />
                 <span>Crear Usuario</span>
@@ -401,20 +401,20 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button
               onClick={() => setShowUserManagement(true)}
-              className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
+              className="stat-card-3d p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
             >
               <Users className="h-6 w-6 text-blue-600 dark:text-blue-400 mb-2" />
               <h4 className="font-semibold text-gray-900 dark:text-white">User Management</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">Manage users and permissions</p>
             </button>
 
-            <button className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
+            <button className="stat-card-3d p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
               <BookOpen className="h-6 w-6 text-green-600 dark:text-green-400 mb-2" />
               <h4 className="font-semibold text-gray-900 dark:text-white">Resource Management</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">Add and manage library resources</p>
             </button>
 
-            <button className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
+            <button className="stat-card-3d p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
               <Brain className="h-6 w-6 text-purple-600 dark:text-purple-400 mb-2" />
               <h4 className="font-semibold text-gray-900 dark:text-white">AI Configuration</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">Configure recommendation algorithms</p>
@@ -422,7 +422,7 @@ export function Dashboard({ user, recentResources, trendingResources }: Dashboar
 
             <button
               onClick={() => setShowSettingsPanel(true)}
-              className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
+              className="stat-card-3d p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
             >
               <Settings className="h-6 w-6 text-orange-600 dark:text-orange-400 mb-2" />
               <h4 className="font-semibold text-gray-900 dark:text-white">System Settings</h4>

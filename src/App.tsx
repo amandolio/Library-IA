@@ -121,20 +121,20 @@ function AppContent() {
         return currentUser.role === 'admin' ? (
           <UserManagementPanel currentUser={{ id: currentUser.id, role: currentUser.role }} />
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
+          <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
             <p className="text-gray-600 dark:text-gray-400">Acceso restringido</p>
           </div>
         );
       case 'favorites':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
+          <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Favoritos</h2>
             <p className="text-gray-600 dark:text-gray-400">Tus recursos favoritos apareceran aqui.</p>
           </div>
         );
       case 'history':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+          <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Historial de Lectura</h2>
             {recentResources.length > 0 ? (
               <div className="grid grid-cols-1 gap-6">
@@ -156,11 +156,11 @@ function AppContent() {
         );
       case 'trending':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+          <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Recursos en Tendencia</h2>
             <div className="grid grid-cols-1 gap-6">
               {trendingResources.map((resource) => (
-                <div key={resource.id} className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg transition-colors">
+                <div key={resource.id} className="stat-card-3d p-4 border border-gray-200 dark:border-gray-600 rounded-lg transition-colors">
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{resource.title}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">por {resource.authors.join(', ')}</p>
                   <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-500">
@@ -175,14 +175,14 @@ function AppContent() {
         );
       case 'analytics':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
+          <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Analiticas de Investigacion</h2>
             <p className="text-gray-600 dark:text-gray-400">Analiticas detalladas e insights sobre tus patrones de investigacion.</p>
           </div>
         );
       case 'collaborate':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
+          <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center transition-colors">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Centro de Colaboracion</h2>
             <p className="text-gray-600 dark:text-gray-400">Conecta con otros investigadores y colabora en proyectos.</p>
           </div>
@@ -199,7 +199,11 @@ function AppContent() {
       <div className="flex">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} userRole={currentUser.role} />
 
-        <main className="flex-1 p-8">{renderContent()}</main>
+        <main className="flex-1 p-8 perspective-1200">
+          <div key={activeTab} className="page-3d-enter">
+            {renderContent()}
+          </div>
+        </main>
       </div>
 
       <SettingsPanel isOpen={showSettings} onClose={() => setShowSettings(false)} />
