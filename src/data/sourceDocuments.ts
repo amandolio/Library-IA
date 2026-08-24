@@ -12,6 +12,8 @@ export interface SourceDocument {
 
 import { additionalSourceDocuments1 } from './additionalSourceDocuments1';
 import { additionalSourceDocuments2 } from './additionalSourceDocuments2';
+import { additionalSourceDocuments3 } from './additionalSourceDocuments3';
+import { additionalSourceDocuments4 } from './additionalSourceDocuments4';
 
 // Academic and technical source documents organized by category
 // Each entry includes verified metadata: title, author, year, DOI, URL
@@ -181,6 +183,8 @@ export const sourceDocuments: SourceDocument[] = [
 
   ...additionalSourceDocuments1,
   ...additionalSourceDocuments2,
+  ...additionalSourceDocuments3,
+  ...additionalSourceDocuments4,
 ];
 
 // Sample texts for demonstration
