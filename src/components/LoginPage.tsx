@@ -15,78 +15,9 @@ import {
   School,
 } from 'lucide-react';
 import { Profession, Faculty } from '../types';
+import { facultyConfig } from './FacultyIcons';
 
 type LucideIcon = React.ComponentType<{ className?: string }>;
-
-const FoxIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M12 3L8 7L4 5L6 11L4 17L8 15L12 19L16 15L20 17L18 11L20 5L16 7Z" />
-    <circle cx="9.5" cy="11" r="1" fill="currentColor" />
-    <circle cx="14.5" cy="11" r="1" fill="currentColor" />
-    <path d="M10 14L12 16L14 14" />
-  </svg>
-);
-
-const ScorpionIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M12 21V14M12 14L8 12M12 14L16 12M12 14L12 10M8 12L5 9M8 12L4 11M16 12L19 9M16 12L20 11M12 10L9 7M12 10L15 7M12 10L12 6" />
-    <circle cx="12" cy="21" r="1.5" fill="currentColor" />
-    <path d="M9 7L7 5M15 7L17 5" />
-  </svg>
-);
-
-const DragonIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M4 18C4 18 6 14 10 14C14 14 16 18 16 18" />
-    <path d="M16 18C16 18 18 14 18 10C18 6 14 4 10 6C6 8 4 12 4 14" />
-    <path d="M18 10L21 8M18 10L20 12" />
-    <path d="M10 6L8 3M10 6L12 3" />
-    <circle cx="11" cy="10" r="1" fill="currentColor" />
-    <path d="M4 18L2 20M4 18L6 20" />
-  </svg>
-);
-
-const CaimanIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 14C3 14 5 12 8 12C11 12 14 14 18 14C20 14 21 13 21 13" />
-    <path d="M3 14L2 16M21 13L22 15" />
-    <path d="M8 12L8 9L10 10M11 12L11 9L13 10M14 12L14 9L16 10" />
-    <circle cx="6" cy="13" r="0.5" fill="currentColor" />
-    <path d="M18 14L18 17M21 13L21 17" />
-    <path d="M18 17L17 19M18 17L19 19M21 17L20 19M21 17L22 19" />
-  </svg>
-);
-
-const GladiatorIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M12 3L8 5L8 8L12 7L16 8L16 5Z" />
-    <path d="M8 8L6 12L8 14L12 12L16 14L18 12L16 8" />
-    <path d="M8 14L8 18L10 21M16 14L16 18L14 21" />
-    <path d="M12 12L12 18" />
-    <path d="M6 12L4 14M18 12L20 14" />
-    <circle cx="12" cy="5" r="1" fill="currentColor" />
-  </svg>
-);
-
-const WolfIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M4 16L6 10L4 6L8 8L12 6L16 8L20 6L18 10L20 16L16 18L12 20L8 18Z" />
-    <path d="M8 8L7 5M16 8L17 5" />
-    <circle cx="9.5" cy="12" r="1" fill="currentColor" />
-    <circle cx="14.5" cy="12" r="1" fill="currentColor" />
-    <path d="M11 15L12 17L13 15" />
-    <path d="M10 14L8 14M14 14L16 14" />
-  </svg>
-);
-
-export const facultyConfig: Record<Faculty, { label: string; icon: LucideIcon }> = {
-  facultad1: { label: 'Facultad 1', icon: FoxIcon },
-  facultad2: { label: 'Facultad 2', icon: ScorpionIcon },
-  facultad3: { label: 'Facultad 3', icon: DragonIcon },
-  facultad4: { label: 'Facultad 4', icon: CaimanIcon },
-  facultadCITEC: { label: 'Facultad CITEC', icon: GladiatorIcon },
-  facultadFTE: { label: 'Facultad FTE', icon: WolfIcon },
-};
 
 const professionConfig: Record<Profession, { label: string; icon: LucideIcon }> = {
   profesor: { label: 'Profesor', icon: Briefcase },

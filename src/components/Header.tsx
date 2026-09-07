@@ -2,7 +2,7 @@ import React from 'react';
 import { Search, Bell, User, BookOpen, Settings, Sun, Moon } from 'lucide-react';
 import { User as UserType, Faculty } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
-import { facultyConfig } from './LoginPage';
+import { facultyConfig } from './FacultyIcons';
 
 interface HeaderProps {
   user: UserType;
