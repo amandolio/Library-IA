@@ -1,7 +1,8 @@
 import React from 'react';
 import { Search, Bell, User, BookOpen, Settings, Sun, Moon } from 'lucide-react';
-import { User as UserType } from '../types';
+import { User as UserType, Faculty } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
+import { facultyConfig } from './AuthModal';
 
 interface HeaderProps {
   user: UserType;
@@ -28,6 +29,8 @@ export function Header({ user, onProfileClick, onSettingsClick }: HeaderProps) {
       default: return role;
     }
   };
+
+  const FacultyIcon = user.faculty ? facultyConfig[user.faculty as Faculty]?.icon : null;
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
@@ -78,7 +81,12 @@ export function Header({ user, onProfileClick, onSettingsClick }: HeaderProps) {
                 <User className="h-5 w-5 text-white" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                <div className="flex items-center space-x-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                  {FacultyIcon && (
+                    <FacultyIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  )}
+                </div>
                 <div className="flex items-center space-x-2">
                   <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
                     {getRoleLabel(user.role)}

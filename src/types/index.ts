@@ -1,8 +1,13 @@
+export type Profession = 'profesor' | 'estudiante';
+export type Faculty = 'facultad1' | 'facultad2' | 'facultad3' | 'facultad4' | 'facultadCITEC' | 'facultadFTE';
+
 export interface User {
   id: string;
   name: string;
   email: string;
   role: 'lector' | 'admin';
+  profession?: Profession;
+  faculty?: Faculty;
   department: string;
   academicLevel: string;
   interests: string[];
