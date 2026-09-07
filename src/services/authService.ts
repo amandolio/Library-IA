@@ -23,6 +23,8 @@ export type AuthUser = {
   avatar_url?: string;
   role?: string;
   department?: string;
+  profession?: string;
+  faculty?: string;
 };
 
 export type AuthState = {
@@ -36,7 +38,7 @@ export type AuthState = {
 export async function signUp(
   email: string,
   password: string,
-  metadata?: { name?: string; department?: string }
+  metadata?: { name?: string; department?: string; profession?: string; faculty?: string }
 ) {
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -46,6 +48,8 @@ export async function signUp(
         name: metadata?.name || email.split('@')[0],
         department: metadata?.department || 'General',
         role: 'lector',
+        profession: metadata?.profession || '',
+        faculty: metadata?.faculty || '',
       },
     },
   });

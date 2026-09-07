@@ -7,7 +7,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string, department?: string) => Promise<void>;
+  register: (email: string, password: string, name?: string, department?: string, extraData?: Record<string, string>) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
   refreshUser: () => Promise<void>;
@@ -15,10 +15,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-async function fetchProfile(userId: string): Promise<{ role: string; name: string; department: string } | null> {
+async function fetchProfile(userId: string): Promise<{ role: string; name: string; department: string; profession: string; faculty: string } | null> {
   const { data } = await supabase
     .from('user_profiles')
-    .select('role, name, department')
+    .select('role, name, department, profession, faculty')
     .eq('id', userId)
     .maybeSingle();
   return data;
@@ -28,9 +28,11 @@ async function upsertProfile(user: any) {
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario';
   const department = user.user_metadata?.department || 'General';
   const role = user.user_metadata?.role || 'lector';
+  const profession = user.user_metadata?.profession || '';
+  const faculty = user.user_metadata?.faculty || '';
 
   await supabase.from('user_profiles').upsert(
-    { id: user.id, name, department, role, updated_at: new Date().toISOString() },
+    { id: user.id, name, department, role, profession, faculty, updated_at: new Date().toISOString() },
     { onConflict: 'id', ignoreDuplicates: false }
   );
 }
@@ -68,6 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       avatar_url: supabaseUser.user_metadata?.avatar_url,
       role: profile?.role || supabaseUser.user_metadata?.role || 'lector',
       department: profile?.department || supabaseUser.user_metadata?.department || 'General',
+      profession: profile?.profession || supabaseUser.user_metadata?.profession || '',
+      faculty: profile?.faculty || supabaseUser.user_metadata?.faculty || '',
     };
   }, []);
 
@@ -146,11 +150,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string, name?: string, department?: string) => {
+  const register = async (email: string, password: string, name?: string, department?: string, extraData?: Record<string, string>) => {
     setError(null);
     setLoading(true);
     try {
-      const data = await signUp(email, password, { name, department });
+      const data = await signUp(email, password, { name, department, ...extraData });
       if (data.session) {
         setSession(data.session);
         const mapped = await buildUser(data.session.user);
