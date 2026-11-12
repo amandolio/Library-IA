@@ -1,13 +1,30 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase, signIn, signUp, signOut, AuthUser } from '../services/authService';
+import type { Session, User } from '@supabase/supabase-js';
+import {
+  supabase,
+  signInWithGoogle,
+  signOut,
+  fetchProfile,
+  createProfile,
+  registerSession,
+  updateHeartbeat,
+  removeSession,
+  AuthUser,
+  PendingRegistration,
+  ProfileRecord,
+  RegistrationInput,
+} from '../services/authService';
+import { saveSnapshot, loadSnapshot, clearSnapshot } from '../services/appStateService';
 
 interface AuthContextType {
   user: AuthUser | null;
-  session: any;
+  session: Session | null;
+  pendingRegistration: PendingRegistration | null;
   loading: boolean;
+  isOffline: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string, department?: string, extraData?: Record<string, string>) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  completeRegistration: (input: RegistrationInput) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
   refreshUser: () => Promise<void>;
@@ -15,178 +32,233 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-async function fetchProfile(userId: string): Promise<{ role: string; name: string; department: string; profession: string; faculty: string } | null> {
-  const { data } = await supabase
-    .from('user_profiles')
-    .select('role, name, department, profession, faculty')
-    .eq('id', userId)
-    .maybeSingle();
-  return data;
+const OFFLINE_LOGIN_MESSAGE = 'Necesitas conexion a internet para iniciar sesion.';
+
+function mapUser(supabaseUser: User, profile: ProfileRecord): AuthUser {
+  const meta = supabaseUser.user_metadata ?? {};
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email ?? '',
+    name: profile.name || meta.full_name || meta.name || supabaseUser.email?.split('@')[0] || 'Usuario',
+    avatar_url: meta.avatar_url || meta.picture,
+    role: profile.role,
+    department: profile.department,
+    profession: profile.profession,
+    faculty: profile.faculty,
+  };
 }
 
-async function upsertProfile(user: any) {
-  const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario';
-  const department = user.user_metadata?.department || 'General';
-  const role = user.user_metadata?.role || 'lector';
-  const profession = user.user_metadata?.profession || '';
-  const faculty = user.user_metadata?.faculty || '';
-
-  await supabase.from('user_profiles').upsert(
-    { id: user.id, name, department, role, profession, faculty, updated_at: new Date().toISOString() },
-    { onConflict: 'id', ignoreDuplicates: false }
-  );
-}
-
-async function registerSession(userId: string) {
-  await supabase.from('active_sessions').upsert(
-    { user_id: userId, login_at: new Date().toISOString(), last_seen: new Date().toISOString() },
-    { onConflict: 'user_id' }
-  );
-}
-
-async function updateHeartbeat(userId: string) {
-  await supabase
-    .from('active_sessions')
-    .update({ last_seen: new Date().toISOString() })
-    .eq('user_id', userId);
-}
-
-async function removeSession(userId: string) {
-  await supabase.from('active_sessions').delete().eq('user_id', userId);
+function toPendingRegistration(supabaseUser: User): PendingRegistration {
+  const meta = supabaseUser.user_metadata ?? {};
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email ?? '',
+    name: meta.full_name || meta.name || supabaseUser.email?.split('@')[0] || '',
+    avatar_url: meta.avatar_url || meta.picture,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [pendingRegistration, setPendingRegistration] = useState<PendingRegistration | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
   const [error, setError] = useState<string | null>(null);
 
-  const buildUser = useCallback(async (supabaseUser: any): Promise<AuthUser> => {
-    const profile = await fetchProfile(supabaseUser.id);
-    return {
-      id: supabaseUser.id,
-      email: supabaseUser.email || '',
-      name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
-      avatar_url: supabaseUser.user_metadata?.avatar_url,
-      role: profile?.role || supabaseUser.user_metadata?.role || 'lector',
-      department: profile?.department || supabaseUser.user_metadata?.department || 'General',
-      profession: profile?.profession || supabaseUser.user_metadata?.profession || '',
-      faculty: profile?.faculty || supabaseUser.user_metadata?.faculty || '',
-    };
+  const restoreFromSnapshot = useCallback((userId?: string) => {
+    const snapshot = loadSnapshot();
+    if (!snapshot || (userId && snapshot.id !== userId)) return false;
+    setUser(snapshot);
+    setPendingRegistration(null);
+    setIsOffline(true);
+    return true;
   }, []);
 
-  const refreshUser = useCallback(async () => {
-    const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-    if (supabaseUser) {
-      const mapped = await buildUser(supabaseUser);
-      setUser(mapped);
+  const resolveSession = useCallback(async (nextSession: Session | null) => {
+    setSession(nextSession);
+
+    if (!nextSession) {
+      if (!navigator.onLine && restoreFromSnapshot()) return;
+      setUser(null);
+      setPendingRegistration(null);
+      return;
     }
-  }, [buildUser]);
+
+    if (!navigator.onLine) {
+      if (!restoreFromSnapshot(nextSession.user.id)) {
+        setUser(null);
+        setPendingRegistration(null);
+      }
+      return;
+    }
+
+    let profile: ProfileRecord | null;
+    try {
+      profile = await fetchProfile(nextSession.user.id);
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      if (restoreFromSnapshot(nextSession.user.id)) return;
+      throw err;
+    }
+
+    if (!profile) {
+      setUser(null);
+      setPendingRegistration(toPendingRegistration(nextSession.user));
+      return;
+    }
+
+    const mapped = mapUser(nextSession.user, profile);
+    setIsOffline(false);
+    setPendingRegistration(null);
+    setUser(mapped);
+    saveSnapshot(mapped);
+    registerSession(mapped.id).catch((err) => console.error('Error registering session:', err));
+  }, [restoreFromSnapshot]);
+
+  const refreshUser = useCallback(async () => {
+    if (!session || !navigator.onLine) return;
+    const profile = await fetchProfile(session.user.id);
+    if (profile) {
+      const mapped = mapUser(session.user, profile);
+      setUser(mapped);
+      saveSnapshot(mapped);
+    }
+  }, [session]);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        if (initialSession) {
-          setSession(initialSession);
-          const mapped = await buildUser(initialSession.user);
-          setUser(mapped);
-          await upsertProfile(initialSession.user);
-          await registerSession(initialSession.user.id);
-        }
-      } catch (err) {
-        console.error('Error getting initial session:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       (async () => {
-        if (event === 'SIGNED_IN' && newSession) {
-          setSession(newSession);
-          const mapped = await buildUser(newSession.user);
-          setUser(mapped);
-          await upsertProfile(newSession.user);
-          await registerSession(newSession.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          setSession(null);
-          setUser(null);
-        } else if (event === 'TOKEN_REFRESHED' && newSession) {
-          setSession(newSession);
+        try {
+          if (event === 'SIGNED_OUT') {
+            setSession(null);
+            setUser(null);
+            setPendingRegistration(null);
+            clearSnapshot();
+          } else if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+            await resolveSession(nextSession);
+          } else if (event === 'TOKEN_REFRESHED' && nextSession) {
+            setSession(nextSession);
+          }
+        } catch (err: any) {
+          console.error('Error resolving session:', err);
+          setError('No se pudo verificar tu cuenta. Intenta de nuevo.');
+        } finally {
+          setLoading(false);
         }
       })();
     });
 
     return () => { subscription.unsubscribe(); };
-  }, [buildUser]);
+  }, [resolveSession]);
 
-  // Heartbeat every 30s while logged in
   useEffect(() => {
-    if (!user) return;
-    const interval = setInterval(() => updateHeartbeat(user.id), 30000);
-    return () => clearInterval(interval);
-  }, [user]);
+    const handleOffline = () => setIsOffline(true);
+    const handleOnline = () => {
+      (async () => {
+        try {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          await resolveSession(currentSession);
+        } catch (err) {
+          console.error('Error restoring connection:', err);
+        }
+      })();
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [resolveSession]);
 
-  const login = async (email: string, password: string) => {
+  useEffect(() => {
+    if (!user || isOffline) return;
+    const interval = setInterval(() => {
+      updateHeartbeat(user.id).catch((err) => console.error('Error updating heartbeat:', err));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [user, isOffline]);
+
+  const loginWithGoogle = async () => {
     setError(null);
-    setLoading(true);
+    if (!navigator.onLine) {
+      setError(OFFLINE_LOGIN_MESSAGE);
+      return;
+    }
     try {
-      const data = await signIn(email, password);
-      if (data.session) {
-        setSession(data.session);
-        const mapped = await buildUser(data.session.user);
-        setUser(mapped);
-        await upsertProfile(data.session.user);
-        await registerSession(data.session.user.id);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesion');
-      throw err;
-    } finally {
-      setLoading(false);
+      await signInWithGoogle();
+    } catch (err) {
+      console.error('Error starting Google sign-in:', err);
+      setError('No se pudo iniciar sesion con Google. Intenta de nuevo.');
     }
   };
 
-  const register = async (email: string, password: string, name?: string, department?: string, extraData?: Record<string, string>) => {
+  const completeRegistration = async (input: RegistrationInput) => {
     setError(null);
-    setLoading(true);
+    if (!pendingRegistration) return;
+    if (!navigator.onLine) {
+      setError(OFFLINE_LOGIN_MESSAGE);
+      return;
+    }
     try {
-      const data = await signUp(email, password, { name, department, ...extraData });
-      if (data.session) {
-        setSession(data.session);
-        const mapped = await buildUser(data.session.user);
-        setUser(mapped);
-        await upsertProfile(data.session.user);
-        await registerSession(data.session.user.id);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error al registrar usuario');
-      throw err;
-    } finally {
-      setLoading(false);
+      const profile = await createProfile(pendingRegistration.id, input);
+      const mapped: AuthUser = {
+        id: pendingRegistration.id,
+        email: pendingRegistration.email,
+        name: profile.name,
+        avatar_url: pendingRegistration.avatar_url,
+        role: profile.role,
+        department: profile.department,
+        profession: profile.profession,
+        faculty: profile.faculty,
+      };
+      setPendingRegistration(null);
+      setUser(mapped);
+      saveSnapshot(mapped);
+      registerSession(mapped.id).catch((err) => console.error('Error registering session:', err));
+    } catch (err) {
+      console.error('Error creating profile:', err);
+      setError('No se pudo completar tu registro. Intenta de nuevo.');
     }
   };
 
   const logout = async () => {
     setError(null);
+    const currentUser = user;
     try {
-      if (user) await removeSession(user.id);
-      await signOut();
-      setUser(null);
+      if (currentUser && navigator.onLine) {
+        await removeSession(currentUser.id).catch((err) => console.error('Error removing session:', err));
+      }
+      await signOut(navigator.onLine ? 'global' : 'local');
       setSession(null);
-    } catch (err: any) {
-      setError(err.message || 'Error al cerrar sesion');
-      throw err;
+      setUser(null);
+      setPendingRegistration(null);
+      clearSnapshot(currentUser?.id);
+    } catch (err) {
+      console.error('Error signing out:', err);
+      setError('No se pudo cerrar la sesion. Intenta de nuevo.');
     }
   };
 
   const clearError = useCallback(() => setError(null), []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, error, login, register, logout, clearError, refreshUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        pendingRegistration,
+        loading,
+        isOffline,
+        error,
+        loginWithGoogle,
+        completeRegistration,
+        logout,
+        clearError,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

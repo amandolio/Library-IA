@@ -13,15 +13,20 @@ import { CloudSyncPanel } from './components/CloudSyncPanel';
 import { NationalRecommendations } from './components/NationalRecommendations';
 import { UserManagementPanel } from './components/UserManagementPanel';
 import { LoginPage } from './components/LoginPage';
+import { RegistrationForm } from './components/RegistrationForm';
+import { NAV_ITEMS } from './components/Sidebar';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SettingsPanel } from './components/SettingsPanel';
+import { useAppState } from './hooks/useAppState';
 import { mockResources, getRecommendations } from './data/mockData';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, WifiOff } from 'lucide-react';
+
+const getTabLabel = (tabId: string) => NAV_ITEMS.find((item) => item.id === tabId)?.label ?? tabId;
 
 function AppContent() {
-  const { user, loading, logout, error } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { user, loading, logout, isOffline, pendingRegistration } = useAuth();
+  const { activeTab, navigate, history: navigationHistory } = useAppState(user?.id ?? null, isOffline);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -52,7 +57,10 @@ function AppContent() {
     );
   }
 
-  // Show login page if not authenticated
+  if (pendingRegistration) {
+    return <RegistrationForm />;
+  }
+
   if (!user) {
     return <LoginPage />;
   }
@@ -135,22 +143,18 @@ function AppContent() {
       case 'history':
         return (
           <div className="card-3d bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Historial de Lectura</h2>
-            {recentResources.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6">
-                {recentResources.map((resource) => (
-                  <div key={resource.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg transition-colors">
-                    <img src={resource.thumbnail} alt={resource.title} className="w-12 h-16 object-cover rounded" />
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{resource.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">por {resource.authors.join(', ')}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Leido el {new Date().toLocaleDateString()}</p>
-                    </div>
-                  </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Historial de Navegacion</h2>
+            {navigationHistory.length > 0 ? (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {navigationHistory.map((entry, index) => (
+                  <li key={`${entry.at}-${index}`} className="flex items-center justify-between py-3">
+                    <span className="font-medium text-gray-900 dark:text-white">{getTabLabel(entry.tab)}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(entry.at).toLocaleString()}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p className="text-gray-600 dark:text-gray-400 text-center">No hay recursos en el historial.</p>
+              <p className="text-gray-600 dark:text-gray-400 text-center">No hay navegacion registrada.</p>
             )}
           </div>
         );
@@ -196,8 +200,15 @@ function AppContent() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <Header user={currentUser} onProfileClick={handleProfileClick} onSettingsClick={() => setShowSettings(true)} />
 
+      {isOffline && (
+        <div className="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 px-8 py-2 flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
+          <WifiOff className="w-4 h-4" />
+          Sin conexion. Solo puedes ver tu historial; el resto de funciones requiere internet.
+        </div>
+      )}
+
       <div className="flex">
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} userRole={currentUser.role} />
+        <Sidebar activeTab={activeTab} onTabChange={navigate} userRole={currentUser.role} isOffline={isOffline} />
 
         <main className="flex-1 p-8 perspective-1200">
           <div key={activeTab} className="page-3d-enter">

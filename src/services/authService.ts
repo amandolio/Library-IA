@@ -7,7 +7,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Singleton instance for Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -19,98 +18,91 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export type AuthUser = {
   id: string;
   email: string;
-  name?: string;
+  name: string;
   avatar_url?: string;
-  role?: string;
+  role: string;
+  department: string;
+  profession: string;
+  faculty: string;
+};
+
+export type ProfileRecord = {
+  name: string;
+  role: string;
+  department: string;
+  profession: string;
+  faculty: string;
+};
+
+export type PendingRegistration = {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url?: string;
+};
+
+export type RegistrationInput = {
+  name: string;
+  profession: 'profesor' | 'estudiante';
   department?: string;
-  profession?: string;
   faculty?: string;
 };
 
-export type AuthState = {
-  user: AuthUser | null;
-  session: any;
-  loading: boolean;
-  error: string | null;
-};
-
-// Sign up with email and password
-export async function signUp(
-  email: string,
-  password: string,
-  metadata?: { name?: string; department?: string; profession?: string; faculty?: string }
-) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name: metadata?.name || email.split('@')[0],
-        department: metadata?.department || 'General',
-        role: 'lector',
-        profession: metadata?.profession || '',
-        faculty: metadata?.faculty || '',
-      },
-    },
+export async function signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
   });
+  if (error) throw error;
+}
 
+export async function signOut(scope: 'global' | 'local' = 'global') {
+  const { error } = await supabase.auth.signOut({ scope });
+  if (error) throw error;
+}
+
+export async function fetchProfile(userId: string): Promise<ProfileRecord | null> {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('name, role, department, profession, faculty')
+    .eq('id', userId)
+    .maybeSingle();
   if (error) throw error;
   return data;
 }
 
-// Sign in with email and password
-export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
+export async function createProfile(userId: string, input: RegistrationInput): Promise<ProfileRecord> {
+  const profile: ProfileRecord = {
+    name: input.name.trim(),
+    role: 'lector',
+    department: input.profession === 'profesor' ? input.department || 'General' : 'General',
+    profession: input.profession,
+    faculty: input.profession === 'estudiante' ? input.faculty || '' : '',
+  };
+  const { error } = await supabase
+    .from('user_profiles')
+    .insert({ id: userId, ...profile, updated_at: new Date().toISOString() });
   if (error) throw error;
-  return data;
+  return profile;
 }
 
-// Sign out
-export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-}
-
-// Get current user
-export async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  return user;
-}
-
-// Get current session
-export async function getCurrentSession() {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) throw error;
-  return session;
-}
-
-// Update user profile
-export async function updateProfile(updates: { name?: string; avatar_url?: string; department?: string }) {
-  const { data, error } = await supabase.auth.updateUser({
-    data: updates,
-  });
-
-  if (error) throw error;
-  return data;
-}
-
-// Reset password
-export async function resetPassword(email: string) {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
-  });
-
+export async function registerSession(userId: string) {
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from('active_sessions')
+    .upsert({ user_id: userId, login_at: now, last_seen: now }, { onConflict: 'user_id' });
   if (error) throw error;
 }
 
-// Listen to auth state changes
-export function onAuthStateChange(callback: (event: string, session: any) => void) {
-  return supabase.auth.onAuthStateChange((event, session) => {
-    callback(event, session);
-  });
+export async function updateHeartbeat(userId: string) {
+  const { error } = await supabase
+    .from('active_sessions')
+    .update({ last_seen: new Date().toISOString() })
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function removeSession(userId: string) {
+  const { error } = await supabase.from('active_sessions').delete().eq('user_id', userId);
+  if (error) throw error;
 }
